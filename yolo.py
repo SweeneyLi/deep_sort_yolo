@@ -25,11 +25,12 @@ ap.add_argument("-i", "--input", help="path to input video", default="./test_vid
 ap.add_argument("-c", "--class", help="name of class", default="person")
 args = vars(ap.parse_args())
 
+model_dir = 'yolov3_640'
 
 class YOLO(object):
     def __init__(self):
-        self.model_path = './model_data/yolo.h5'
-        self.anchors_path = 'model_data/yolo_anchors.txt'
+        self.model_path = './model_data/' + model_dir + '/yolo.h5'
+        self.anchors_path = 'model_data/' + model_dir + '/yolo_anchors.txt'
         self.classes_path = 'model_data/coco.names'
         # 具体参数可实验后进行调整
 
@@ -128,27 +129,10 @@ class YOLO(object):
                 y = 0
             return_boxs.append([x, y, w, h])
 
-            plate, p_score, plate_position = detect_class_by_plate(np.array(image)[y:y + h, x: x + w, :], min_plate_score)
+            plate, p_color, p_score, plate_position = detect_class_by_plate(np.array(image)[y:y + h, x: x + w, :],
+                                                                   min_plate_score)
 
-
-
-            if 5 <= c <= 7:
-                if h >= height_of_container_truck:
-                    c = 7
-                    out_scores[i] += (1 - out_scores[i]) / 2
-                elif h >= height_of_heavy_truck:
-                    c = 5
-                    out_scores[i] += (1 - out_scores[i]) / 2
-
-            if c == 3 and plate:
-                if plate[0] == '沪':
-                    if plate[1].lower() == 'c':
-                        c = VehicleClass.car_hc.value
-                    else:
-                        c = VehicleClass.car_h.value
-                else:
-                    c = VehicleClass.car_nh.value
-
+            c, out_scores[i] = judge_vehicle_type(c, out_scores[i], h, plate, p_color)
             return_plate.append(plate)
             return_p_scores.append(p_score)
 
