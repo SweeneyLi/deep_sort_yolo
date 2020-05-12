@@ -144,10 +144,10 @@ def main(video_path, output_path, vehicle_file, sum_file):
             if direction != -1:
                 leave_list[direction][i.v_class.value] += 1
                 position = i.to_tlbr_int()
-                x = int(position[1])
-                y = int(position[0])
-                w = int(position[3] - position[1])
-                h = int(position[2] - position[0])
+                x = int(position[0])
+                y = int(position[1])
+                w = int(position[2] - position[0])
+                h = int(position[3] - position[1])
                 if x < 0:
                     w = w + x
                     x = 0
@@ -230,8 +230,8 @@ def main(video_path, output_path, vehicle_file, sum_file):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        if frame_index % 150 == 0:
-            print("1s cost:" + str((time.time() - start) / 5))
+        if frame_index % 300 == 0:
+            print("1s cost:" + str((time.time() - start) / 10))
             start = time.time()
             print(frame_index, "in:", (leave_list[0]), "out:", (leave_list[1]))
             csv_writer2.writerow(leave_list[0] + leave_list[1])
