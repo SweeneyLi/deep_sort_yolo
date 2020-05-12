@@ -3,7 +3,6 @@
 
 from __future__ import division, print_function, absolute_import
 from timeit import time
-import cv2
 import warnings
 from PIL import Image
 from yolo import YOLO
@@ -16,8 +15,8 @@ from collections import deque
 from keras import backend
 from utils import *
 import csv
-import numpy as np
 import glob
+import numpy as np
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
 warnings.filterwarnings('ignore')
@@ -28,14 +27,17 @@ backend.clear_session()
 
 
 writeVideo_flag = True
-show_real_time = True
+show_real_time = False
 cut_size = 250
 
-start_frame = None
-end_frame = 60 * 30
+# start_frame = None
+# end_frame = None
 
-# start_frame = 3 * 30
-# end_frame = 10 * 30
+# start_frame = 0
+# end_frame = 2 * 30
+
+start_frame = 20 * 30
+end_frame = 110 * 30
 # =====================================================================================================================
 
 # pts = [deque(maxlen=30) for _ in range(9999)]
@@ -49,7 +51,7 @@ Height = None
 title_height = 182
 
 
-def main(video_path, output_path, leave_file_name, leave_file2_name):
+def main(video_path, output_path, vehicle_file, sum_file):
     start = time.time()
     cap = cv2.VideoCapture(video_path)
     cap.set(6, cv2.VideoWriter.fourcc('M', 'J', 'P', 'G'))
@@ -66,14 +68,14 @@ def main(video_path, output_path, leave_file_name, leave_file2_name):
                               (Width, title_height + Height - cut_size))
 
     # write in file
-    leave_file = open(leave_file_name, 'w', encoding='utf-8')
-    csv_writer = csv.writer(leave_file)
+    vehicle_file = open(vehicle_file, 'w', encoding='gbk')
+    csv_writer = csv.writer(vehicle_file)
     csv_writer.writerow(
         ['frame', 'direction', 'vehicle_id', 'vehicle_type', 'vehicle_score', 'plate', 'plate_score', 'len_of_path',
-         'minX', 'minY', 'maxX', 'maxY'])
+         'width', 'height', 'minX', 'minY', 'maxX', 'maxY'])
 
-    leave_file2 = open(leave_file2_name, 'w', encoding='utf-8')
-    csv_writer2 = csv.writer(leave_file2)
+    sum_file = open(sum_file, 'w', encoding='gbk')
+    csv_writer2 = csv.writer(sum_file)
     csv_writer2.writerow(
         ["bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh", "car_h", "car_hc",
          "bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh", "car_h", "car_hc"])
@@ -142,6 +144,18 @@ def main(video_path, output_path, leave_file_name, leave_file2_name):
             if direction != -1:
                 leave_list[direction][i.v_class.value] += 1
                 position = i.to_tlbr_int()
+                x = int(position[1])
+                y = int(position[0])
+                w = int(position[3] - position[1])
+                h = int(position[2] - position[0])
+                if x < 0:
+                    w = w + x
+                    x = 0
+                if y < 0:
+                    h = h + y
+                    y = 0
+                position = [w, h, x, y, x + w, y + h]
+
                 csv_writer.writerow(
                     [frame_index, direction, i.track_id, i.v_class.name, i.v_score, i.plate, i.p_score, len(path)]
                     + position)
@@ -168,7 +182,8 @@ def main(video_path, output_path, leave_file_name, leave_file2_name):
             cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[3])), (color), 3)
 
             cv2.rectangle(frame, (int(bbox[0]), int(bbox[1]) - 50), (int(bbox[2]), int(bbox[1])), (color), cv2.FILLED)
-            cv2.putText(frame, str(track.track_id) + "-" + str(track.v_class.name), (int(bbox[0]), int(bbox[1])), 0,
+            cv2.putText(frame, str(track.track_id) + "-" + str(track.v_class.name) + '-' + str(round(track.v_score, 2)),
+                        (int(bbox[0]), int(bbox[1])), 0,
                         5e-3 * 300, (255, 255, 255), 3)
 
             cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[1]) + 50), (0, 0, 0), cv2.FILLED)
@@ -192,13 +207,13 @@ def main(video_path, output_path, leave_file_name, leave_file2_name):
         frame = np.concatenate((np.zeros((title_height, Width, 3), dtype="uint8"), frame))
         # cv2.rectangle(frame, (0, 0), (frame.shape[1], 200), (0, 0, 0), cv2.FILLED)
 
-        cv2.putText(frame, "frame:%d" % (frame_index), (int(0), int(220)), 0, 5e-3 * 400, (0, 255, 0), 3)
-        cv2.putText(frame, "FPS: %f" % (fps), (int(0), int(250)), 0, 5e-3 * 400, (0, 255, 0), 3)
+        cv2.putText(frame, "frame:%d" % (frame_index), (int(0), int(250)), 0, 5e-3 * 400, (0, 255, 0), 4)
+        cv2.putText(frame, "FPS: %f" % (fps), (int(0), int(300)), 0, 5e-3 * 400, (0, 255, 0), 4)
 
-        cv2.putText(frame, "in:" + str(sum(leave_list[0])), (int(0), int(80)), 0, 5e-3 * 400, (255, 255, 255), 5)
-        cv2.putText(frame, "out:" + str(sum(leave_list[1])), (int(0), int(180)), 0, 5e-3 * 400, (255, 255, 255), 5)
-        cv2.putText(frame, print_leave_list(leave_list[0]), (int(200), int(80)), 0, 5e-3 * 280, (255, 0, 255), 3)
-        cv2.putText(frame, print_leave_list(leave_list[1]), (int(200), int(180)), 0, 5e-3 * 280, (255, 0, 255), 3)
+        cv2.putText(frame, "in:" + str(sum(leave_list[0])), (int(0), int(80)), 0, 5e-3 * 400, (255, 123, 255), 5)
+        cv2.putText(frame, "out:" + str(sum(leave_list[1])), (int(0), int(180)), 0, 5e-3 * 400, (255, 123, 255), 5)
+        cv2.putText(frame, print_leave_list(leave_list[0]), (int(200), int(80)), 0, 5e-3 * 280, (255, 255, 255), 3)
+        cv2.putText(frame, print_leave_list(leave_list[1]), (int(200), int(180)), 0, 5e-3 * 280, (255, 255, 255), 3)
 
         # show the instant result
         if show_real_time:
@@ -215,39 +230,85 @@ def main(video_path, output_path, leave_file_name, leave_file2_name):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        if frame_index % 300 == 0:
-            print("1s cost:" + str((time.time() - start) / 10))
+        if frame_index % 150 == 0:
+            print("1s cost:" + str((time.time() - start) / 5))
             start = time.time()
             print(frame_index, "in:", (leave_list[0]), "out:", (leave_list[1]))
             csv_writer2.writerow(leave_list[0] + leave_list[1])
 
-    print(" ")
-    print(goal + " " + str(frame_index) + "frame - Finish!")
-    print(frame_index)
-    print("in:", (leave_list[0]), "out:", (leave_list[1]))
-    end = time.time()
-    print("run need: " + str((end - time2) / 60) + 'min')
+    csv_writer2.writerow(leave_list[0] + leave_list[1])
 
-    leave_file.write('\n')
-    leave_file.write(goal + " run need: " + str(end - time2) + 's')
+    print(" ")
+    print(goal + " " + str(frame_index) + " frame - Finish!")
+
+    print("in:", (leave_list[0]), "out:", (leave_list[1]))
+    time_need = round((time.time() - time2) / 60, 2)
+    print("run need: " + str(time_need) + 'min')
+
+    vehicle_file.write('\n')
+    vehicle_file.write(goal + " run need: " + str(time_need) + 'm')
     cap.release()
     if writeVideo_flag:
         out.release()
-        leave_file.close()
-        leave_file2.close()
+        vehicle_file.close()
+        sum_file.close()
     cv2.destroyAllWindows()
+
+    return leave_list, time_need
 
 
 # video_list = [r"F:\Workplace\yolo_data\videos\IMG_2712.MOV"]
 video_list = glob.glob(r"D:\WorkSpaces\videos\*.MOV")
-# video_list = [r"D:\WorkSpaces\videos\DJI_0004.MOV"]
+# video_list = [r"D:\WorkSpaces\videos\DJI_0005.MOV"]
+
 
 if __name__ == '__main__':
     yolo = YOLO()
-    for video_path in video_list:
-        goal = video_path.split(".")[0].split("\\")[-1]
-        print(goal)
-        output_path = "output/r_%s.mov" % goal
-        leave_file_name = "output/leave_%s.csv" % goal
-        leave_file2_name = "output/leave2_%s.csv" % goal
-        main(video_path, output_path, leave_file_name, leave_file2_name)
+    # for video_path in video_list:
+    #     goal = video_path.split(".")[0].split("\\")[-1]
+    #     print(goal)
+    #     output_path = "output/r_%s.mov" % goal
+    #     vehicle_file = "output/leave_%s.csv" % goal
+    #     sum_file = "output/leave2_%s.csv" % goal
+    #     main(video_path, output_path, vehicle_file, sum_file)
+
+    # ===================================================================
+    parameter_file = open("output/para/parameter.csv", 'w', encoding='gbk')
+    csv_writer = csv.writer(parameter_file)
+    csv_writer.writerow(['num', 'n_init', 'max_age', 'max_cosine_distance', 'num_max_overlap', 'avg_time'] +
+                        ["bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
+                         "car_h", "car_hc",
+                         "bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
+                         "car_h", "car_hc"])
+
+    n_init_list = [4, 5]
+    max_age_list = [15, 30]
+    max_cosine_distance_list = [0.5, 0.55, 0.6]  # 余弦距离的控制阈值
+    nms_max_overlap_list = [0.5, 0.55, 0.6]  # 非极大抑制的阈值
+
+    num = 0
+    for i in n_init_list:
+        for j in max_age_list:
+            for k in max_cosine_distance_list:
+                for l in nms_max_overlap_list:
+                    n_init = i
+                    max_age = j
+                    max_cosine_distance = k
+                    nms_max_overlap = l
+
+                    path = 'output/para/' + str(num)
+                    if not os.path.exists(path):
+                        os.mkdir(path)
+
+                    video_path = video_list[1]
+                    goal = video_path.split(".")[0].split("\\")[-1]
+                    output_path = "output/para/%s/r_%s.mov" % (num, goal)
+                    vehicle_file = "output/para/%s/vehicle_%s.csv" % (num, goal)
+                    sum_file = "output/para/%s/nums_%s.csv" % (num, goal)
+                    leave_list, time_need = main(video_path, output_path, vehicle_file, sum_file)
+
+                    csv_writer.writerow(
+                        [num, n_init, max_age, max_cosine_distance, nms_max_overlap, time_need / 90] + leave_list[0] +
+                        leave_list[1])
+                    num += 1
+    parameter_file.close()

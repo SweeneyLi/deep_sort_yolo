@@ -1,4 +1,7 @@
 # vim: expandtab:ts=4:sw=4
+from utils import VehicleClass
+
+car_class = [VehicleClass.car.value, VehicleClass.car_h.value, VehicleClass.car_nh.value, VehicleClass.car_hc.value]
 
 
 class TrackState:
@@ -155,15 +158,15 @@ class Track:
         if self.state == TrackState.Tentative and self.hits >= self._n_init:
             self.state = TrackState.Confirmed
 
-        if self.v_class.value in [3, 8, 9, 10] and detection.v_class.value in [3, 8, 9, 10]:
-            if detection.v_class.value > self.v_class.value:
+        if self.v_class.value in car_class and detection.v_class.value in car_class:
+            if detection.v_class.value >= self.v_class.value:
                 self.v_class = detection.v_class
                 self.v_score = detection.v_score
-        elif detection.v_score > self.v_score:
+        elif detection.v_score >= self.v_score:
             self.v_score = detection.v_score
             self.v_class = detection.v_class
 
-        if detection.p_score > self.p_score:
+        if detection.p_score >= self.p_score:
             self.plate = detection.plate
             self.p_score = detection.p_score
 
