@@ -85,7 +85,7 @@ def judge_color(Judge_HSV, img):
         return Color.green
 
 
-def judge_color(image, position):
+def judge_plate_color(image, position):
     left, top, right, bottom = position
     top = max(0, top - 10)
     bottom = min(image.shape[0], bottom + 10)
@@ -103,7 +103,7 @@ def judge_color(image, position):
 
 
 img_path = r"output\2.jpg"
-img_list = glob.glob(r"F:\Workplace\deep_sort_yolov3\output\color\*.jpg")
+img_list = glob.glob(r"D:\WorkSpaces\deep_sort_yolov3\output\color\*.jpg")
 # img_list = [r"F:\Workplace\deep_sort_yolov3\output\plate\2.jpg"]
 # img_list = glob.glob(r"F:\Workplace\deep_sort_yolov3\output\plate\*.jpg")
 Judge_HSV = HSV()
@@ -140,3 +140,6 @@ for img_path in img_list:
 
 print(truth_list)
 print(detect_list)
+for i in range(len(truth_list)):
+    print(truth_list[i], detect_list[i])
+

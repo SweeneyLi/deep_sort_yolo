@@ -28,14 +28,14 @@ backend.clear_session()
 
 
 writeVideo_flag = True
-show_real_time = False
+show_real_time = True
 cut_size = 250
 
-# start_frame = None
-# end_frame = None
+start_frame = None
+end_frame = 60 * 30
 
-start_frame = 3 * 30
-end_frame = 10 * 30
+# start_frame = 3 * 30
+# end_frame = 10 * 30
 # =====================================================================================================================
 
 # pts = [deque(maxlen=30) for _ in range(9999)]
@@ -49,7 +49,7 @@ Height = None
 title_height = 182
 
 
-def main(video_path, output_path, leave_file_name):
+def main(video_path, output_path, leave_file_name, leave_file2_name):
     start = time.time()
     cap = cv2.VideoCapture(video_path)
     cap.set(6, cv2.VideoWriter.fourcc('M', 'J', 'P', 'G'))
@@ -65,11 +65,18 @@ def main(video_path, output_path, leave_file_name):
         out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), fps,
                               (Width, title_height + Height - cut_size))
 
+    # write in file
     leave_file = open(leave_file_name, 'w', encoding='utf-8')
     csv_writer = csv.writer(leave_file)
     csv_writer.writerow(
         ['frame', 'direction', 'vehicle_id', 'vehicle_type', 'vehicle_score', 'plate', 'plate_score', 'len_of_path',
          'minX', 'minY', 'maxX', 'maxY'])
+
+    leave_file2 = open(leave_file2_name, 'w', encoding='utf-8')
+    csv_writer2 = csv.writer(leave_file2)
+    csv_writer2.writerow(
+        ["bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh", "car_h", "car_hc",
+         "bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh", "car_h", "car_hc"])
 
     # deep_sort
     model_filename = 'model_data/market1501.pb'
@@ -84,8 +91,9 @@ def main(video_path, output_path, leave_file_name):
     print("load need: " + str(time2 - start) + 's')
     print(goal + " start!")
     leave_list = [[0 for _ in range(11)], [0 for _ in range(11)]]
-    while True:
 
+    start = time.time()
+    while True:
         ret, frame = cap.read()  # frame shape 640*480*3
         if not ret:
             break
@@ -181,15 +189,17 @@ def main(video_path, output_path, leave_file_name):
                 thickness = int(np.sqrt(64 / float(j + 1)) * 2)
                 cv2.line(frame, (pts[track.track_id][j - 1]), (pts[track.track_id][j]), (color), thickness)
 
-        cv2.putText(frame, "frame:%d" % (frame_index), (int(20), int(0)), 0, 5e-3 * 400, (0, 255, 0), 3)
-        cv2.putText(frame, "FPS: %f" % (fps), (int(20), int(0)), 0, 5e-3 * 400, (0, 255, 0), 3)
-
         frame = np.concatenate((np.zeros((title_height, Width, 3), dtype="uint8"), frame))
         # cv2.rectangle(frame, (0, 0), (frame.shape[1], 200), (0, 0, 0), cv2.FILLED)
+
+        cv2.putText(frame, "frame:%d" % (frame_index), (int(0), int(220)), 0, 5e-3 * 400, (0, 255, 0), 3)
+        cv2.putText(frame, "FPS: %f" % (fps), (int(0), int(250)), 0, 5e-3 * 400, (0, 255, 0), 3)
+
         cv2.putText(frame, "in:" + str(sum(leave_list[0])), (int(0), int(80)), 0, 5e-3 * 400, (255, 255, 255), 5)
         cv2.putText(frame, "out:" + str(sum(leave_list[1])), (int(0), int(180)), 0, 5e-3 * 400, (255, 255, 255), 5)
-        cv2.putText(frame, print_leave_list(leave_list[0]), (int(180), int(80)), 0, 5e-3 * 300, (255, 0, 255), 2)
-        cv2.putText(frame, print_leave_list(leave_list[1]), (int(180), int(180)), 0, 5e-3 * 300, (255, 0, 255), 2)
+        cv2.putText(frame, print_leave_list(leave_list[0]), (int(200), int(80)), 0, 5e-3 * 280, (255, 0, 255), 3)
+        cv2.putText(frame, print_leave_list(leave_list[1]), (int(200), int(180)), 0, 5e-3 * 280, (255, 0, 255), 3)
+
         # show the instant result
         if show_real_time:
             cv2.namedWindow("YOLO3_Deep_SORT", 0)
@@ -205,8 +215,11 @@ def main(video_path, output_path, leave_file_name):
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-        if frame_index % 900 == 0:
+        if frame_index % 300 == 0:
+            print("1s cost:" + str((time.time() - start) / 10))
+            start = time.time()
             print(frame_index, "in:", (leave_list[0]), "out:", (leave_list[1]))
+            csv_writer2.writerow(leave_list[0] + leave_list[1])
 
     print(" ")
     print(goal + " " + str(frame_index) + "frame - Finish!")
@@ -221,11 +234,13 @@ def main(video_path, output_path, leave_file_name):
     if writeVideo_flag:
         out.release()
         leave_file.close()
+        leave_file2.close()
     cv2.destroyAllWindows()
 
 
 # video_list = [r"F:\Workplace\yolo_data\videos\IMG_2712.MOV"]
-video_list = glob.glob(r"F:\Workplace\yolo_data\videos\*.MOV")
+video_list = glob.glob(r"D:\WorkSpaces\videos\*.MOV")
+# video_list = [r"D:\WorkSpaces\videos\DJI_0004.MOV"]
 
 if __name__ == '__main__':
     yolo = YOLO()
@@ -234,5 +249,5 @@ if __name__ == '__main__':
         print(goal)
         output_path = "output/r_%s.mov" % goal
         leave_file_name = "output/leave_%s.csv" % goal
-
-        main(video_path, output_path, leave_file_name)
+        leave_file2_name = "output/leave2_%s.csv" % goal
+        main(video_path, output_path, leave_file_name, leave_file2_name)
