@@ -1,7 +1,8 @@
 # vim: expandtab:ts=4:sw=4
 from utils import VehicleClass
 
-car_class = [VehicleClass.car.value, VehicleClass.car_h.value, VehicleClass.car_nh.value, VehicleClass.car_hc.value]
+car_class = [VehicleClass.car.value, VehicleClass.car_h.value, VehicleClass.car_nh.value, VehicleClass.car_hc.value,
+             VehicleClass.taxi.value]
 
 
 class TrackState:

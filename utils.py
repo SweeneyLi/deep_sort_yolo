@@ -55,23 +55,26 @@ def detect_class_by_plate(image, min_plate_score=0.3):
 
     :param image:
     :param min_plate_score:
-    :return: plate, p_color, p_score, plate_position
+    :return: plate, p_color, p_score
     '''
+
+    # test
     # plt.figure(figsize=[12, 8])
     # plt.imshow(image)
     # plt.axis('off')
     # plt.show()
+
     try:
         plate_info = HyperLPR_plate_recognition(image)
     except Exception as e:
         print(e)
-        return None, None, 0, None
+        return None, None, 0
 
     if len(plate_info) == 0 or plate_info[0][1] < min_plate_score:
-        return None, None, 0, None
+        return None, None, 0
 
     p_color = judge_plate_color(image, plate_info[0][2])
-    return plate_info[0][0], p_color, plate_info[0][1], plate_info[0][2]
+    return plate_info[0][0], p_color, plate_info[0][1]
 
 
 class Color(Enum):
@@ -128,7 +131,7 @@ class HSV(object):
 
 
 def judge_color(Judge_HSV, img):
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
     h, w, _ = img.shape
     # print(img.shape)
     blue_sum, yellow_sum, green_sum = 0, 0, 0
@@ -141,7 +144,10 @@ def judge_color(Judge_HSV, img):
             elif Judge_HSV.isGreen(img[i][j]):
                 green_sum += 1
     max_sum = max(blue_sum, yellow_sum, green_sum)
+
+    # test
     # print(blue_sum, yellow_sum, green_sum)
+
     if max_sum < 10:
         return Color.no_color
     elif max_sum == blue_sum:
@@ -162,15 +168,20 @@ def judge_plate_color(image, position):
     # right = min(image.shape[1], right + 10)
 
     plate_img = image[top:bottom, left:right]
+
+    # r, g, b = cv2.split(plate_img)
+    # plate_img = cv2.merge([b, g, r])
+
+    # test
     # plt_show0(plate_img)
 
     color = judge_color(Judge_HSV, plate_img)
 
     # bgr and rgb
-    if color == Color.yellow:
-        color = Color.blue
-    elif color == Color.blue:
-        color = Color.yellow
+    # if color == Color.yellow:
+    #     color = Color.blue
+    # elif color == Color.blue:
+    #     color = Color.yellow
 
     # uuid_str = uuid.uuid4().hex
     # tmp_file_name = 'tmpfile_%s.jpg' % uuid_str
@@ -196,18 +207,21 @@ def judge_vehicle_type(vehicle_class, vehicle_score, height, plate, p_color):
     # value to class
     vehicle_class = VehicleClass(vehicle_class)
 
+    # rise the score of the rare class
     if vehicle_class in [VehicleClass.bus, VehicleClass.coach]:
         # vehicle_class = judge_bus_coach_by_plate(plate)
         # vehicle_score = plate_constant_score
+        vehicle_score += (1 - vehicle_score) / 3
+        vehicle_class = VehicleClass.coach
         pass
 
     if vehicle_class != VehicleClass.coach and vehicle_class != VehicleClass.bus and height > height_of_heavy_truck:
         if height > height_of_container_truck:
             vehicle_class = VehicleClass.container_truck
-            vehicle_score = height_constant_score
+            vehicle_score = height_container_truck_score
         else:
             vehicle_class = VehicleClass.heavy_truck
-            vehicle_score = height_constant_score
+            vehicle_score = height_heavy_truck_score
 
     if vehicle_class in [VehicleClass.taxi, VehicleClass.car, VehicleClass.van]:
         # vehicle_class = judge_taxi_by_plate(plate)
@@ -215,9 +229,9 @@ def judge_vehicle_type(vehicle_class, vehicle_score, height, plate, p_color):
         pass
 
     if vehicle_class == VehicleClass.heavy_truck:
-        if p_color == PlateColor.blue and vehicle_class != VehicleClass.van:
+        if p_color == PlateColor.blue:
             vehicle_class = VehicleClass.van
-        elif p_color == PlateColor.yellow and vehicle_class != VehicleClass.heavy_truck:
+        elif p_color == PlateColor.yellow:
             vehicle_class = VehicleClass.heavy_truck
     elif vehicle_class in [VehicleClass.coach, VehicleClass.car, VehicleClass.van]:
         if p_color == PlateColor.yellow and vehicle_class != VehicleClass.coach:
