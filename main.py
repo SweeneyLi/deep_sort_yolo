@@ -30,10 +30,10 @@ show_real_time = False
 cut_size = 250
 # cut_size = 0
 
-start_frame = None
+# start_frame = None
 end_frame = None
 
-# start_frame = 0
+start_frame = 70
 # end_frame = 2 * 30
 
 # start_frame = 227 * 30
@@ -248,6 +248,10 @@ def main(video_path, output_path, vehicle_file, sum_file, goal):
             print(frame_index / 30, "in:", (leave_list[0]), "out:", (leave_list[1]))
             csv_writer2.writerow(leave_list[0] + leave_list[1])
 
+        # test
+        if os.path.exists("output/stop.txt"):
+            break
+
     csv_writer2.writerow(leave_list[0] + leave_list[1])
 
     print(" ")
@@ -289,32 +293,27 @@ def run():
     # ===================================================================
     # parameter_file = open("output/para/parameter.csv", 'w', encoding='gbk')
     # csv_writer = csv.writer(parameter_file)
-    # csv_writer.writerow(['num', 'height_of_heavy_truck', 'height_of_container_truck', 'avg_time'] +
+    # csv_writer.writerow(['num', 'n_init', 'max_cosine_distance', 'height_of_heavy_truck', 'avg_time'] +
     #                     ["bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
     #                      "car_h", "car_hc",
     #                      "bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
     #                      "car_h", "car_hc"])
     #
-    # n_init_list = [5, 6]
-    # # max_age_list = [15]
-    # # max_cosine_distance_list = [0.50, 0.52, 0.55]  # 余弦距离的控制阈值
-    # # nms_max_overlap_list = [0.50, 0.52, 0.55]  # 非极大抑制的阈值
+    # n_init_list = [8]
+    # max_cosine_distance_list = [0.55, 0.6, 0.65, 0.7, 0.75]  # 余弦距离的控制阈值
+    # # nms_max_overlap_list = [0.50, 0.55, 0.6]  # 非极大抑制的阈值
     #
-    # height_of_heavy_truck_list = [950, 1000]
-    # height_of_container_truck_list = [1200, 1300]
+    # height_of_heavy_truck_list = [1000]
+    # # height_of_heavy_truck_list = [850, 900, 950, 1000]
+    # # height_of_container_truck_list = [1250, 1300]
     #
     # num = 0
-    # for i in height_of_heavy_truck_list:
-    #     for j in height_of_container_truck_list:
-    #         for k in n_init_list:
-    #             # n_init = i
-    #             # max_age = j
-    #             # max_cosine_distance = k
-    #             # nms_max_overlap = l
-    #
-    #             height_of_container_truck = j
-    #             height_of_heavy_truck = i
-    #             n_init = k
+    # for i in n_init_list:
+    #     for j in max_cosine_distance_list:
+    #         for k in height_of_heavy_truck_list:
+    #             n_init = i
+    #             max_cosine_distance = j
+    #             height_of_heavy_truck = k
     #
     #             path = 'output/para/' + str(num)
     #             if not os.path.exists(path):
@@ -328,7 +327,7 @@ def run():
     #             leave_list, time_need = main(video_path, output_path, vehicle_file, sum_file, goal)
     #             # leave_list, time_need = [[],[]], 0
     #             csv_writer.writerow(
-    #                 [num, n_init, max_age, max_cosine_distance, nms_max_overlap, time_need / 90] + leave_list[0] +
+    #                 [num, n_init, max_cosine_distance, height_of_heavy_truck, time_need / 90] + leave_list[0] +
     #                 leave_list[1])
     #             num += 1
     #

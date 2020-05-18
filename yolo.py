@@ -12,7 +12,8 @@ from timeit import default_timer as timer  ### to calculate FPS
 import cv2
 import numpy as np
 from keras import backend as K
-from keras.models import load_model
+# from keras.models import load_model
+from tensorflow.keras.models import load_model
 from PIL import Image, ImageFont, ImageDraw
 
 from yolo3.model import yolo_eval
@@ -26,7 +27,7 @@ ap.add_argument("-c", "--class", help="name of class", default="person")
 args = vars(ap.parse_args())
 
 model_dir = 'yolov3_640'
-
+# model_dir = 'yolov4_ori_anchor'
 
 class YOLO(object):
     def __init__(self):
