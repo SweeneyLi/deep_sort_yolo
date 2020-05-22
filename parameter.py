@@ -2,12 +2,14 @@
 yolo_score = 0.30
 yolo_iou = 0.6
 max_iou_distance = 0.7
+model_image_size = (640, 640)
+
 
 # deep sort
 n_init = 4
 max_age = 30
 max_cosine_distance = 0.55  # 余弦距离的控制阈值 0.5
-nn_budget = 30  # len of feature maps
+nn_budget = 15  # len of feature maps
 nms_max_overlap = 0.55  # 非极大抑制的阈值 0.3
 
 max_area_ratio = 0.4

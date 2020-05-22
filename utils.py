@@ -4,8 +4,8 @@ from enum import Enum
 import cv2
 from parameter import *
 
+import uuid
 
-# import uuid
 
 class PlateColor(Enum):
     blue = 0
@@ -26,7 +26,6 @@ class VehicleClass(Enum):
     car_nh = 8
     car_h = 9
     car_hc = 10
-
 
 
 class_dict = {'bus': 0, 'taxi': 1, 'coach': 2, 'car': 3, 'motor': 4, 'heavy_truck': 5, 'van': 6, 'container_truck': 7,
@@ -63,7 +62,13 @@ def detect_class_by_plate(image, min_plate_score=0.3):
     # plt.imshow(image)
     # plt.axis('off')
     # plt.show()
+    h, w, _ = image.shape
+    # uuid_str = uuid.uuid4().hex
+    # tmp_file_name = 'tmpfile_%s.jpg' % uuid_str
+    # cv2.rectangle(image, (int(0), int(h / 4 * 3)), (int(w), int(h)), (1, 1, 1), 5)
+    # plt.imsave(r"output/tmp/" + tmp_file_name, image)
 
+    image = image[int(h / 4 * 3):, :, :]
     try:
         plate_info = HyperLPR_plate_recognition(image)
     except Exception as e:

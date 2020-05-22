@@ -30,10 +30,10 @@ show_real_time = False
 cut_size = 250
 # cut_size = 0
 
-# start_frame = None
+start_frame = None
 end_frame = None
 
-start_frame = 70
+# start_frame = 70
 # end_frame = 2 * 30
 
 # start_frame = 227 * 30

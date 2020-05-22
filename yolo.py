@@ -27,6 +27,8 @@ ap.add_argument("-c", "--class", help="name of class", default="person")
 args = vars(ap.parse_args())
 
 model_dir = 'yolov3_640'
+
+
 # model_dir = 'yolov4_ori_anchor'
 
 class YOLO(object):
@@ -38,7 +40,7 @@ class YOLO(object):
 
         self.score = yolo_score
         self.iou = yolo_iou
-        self.model_image_size = (640, 640)
+        self.model_image_size = model_image_size
 
         self.class_names = self._get_class()
         self.anchors = self._get_anchors()
@@ -131,8 +133,11 @@ class YOLO(object):
                 y = 0
             return_boxs.append([x, y, w, h])
 
-
-            plate, p_color, p_score = detect_class_by_plate(np.array(image)[y:y + h, x: x + w, :], min_plate_score)
+            # return_boxs.append([x, y, x + w, y + h])
+            if h > 400 and y > image.size[0] / 2:
+                plate, p_color, p_score = detect_class_by_plate(np.array(image)[y:y + h, x: x + w, :], min_plate_score)
+            else:
+                plate, p_color, p_score = None, None, 0
 
             c, out_scores[i] = judge_vehicle_type(c, out_scores[i], h, plate, p_color)
             return_plate.append(plate)
