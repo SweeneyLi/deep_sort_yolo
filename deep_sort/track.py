@@ -1,5 +1,6 @@
 # vim: expandtab:ts=4:sw=4
 from utils import VehicleClass
+from parameter import  nn_budget
 
 car_class = [VehicleClass.car.value, VehicleClass.car_h.value, VehicleClass.car_nh.value, VehicleClass.car_hc.value,
              VehicleClass.taxi.value]
@@ -82,6 +83,8 @@ class Track:
         if feature is not None:
             self.features.append(feature)
 
+        self.center_path = []
+
         self._n_init = n_init
         self._max_age = max_age
 
@@ -153,6 +156,11 @@ class Track:
         self.mean, self.covariance = kf.update(
             self.mean, self.covariance, detection.to_xyah())
         self.features.append(detection.feature)
+
+        bbox = self.to_tlbr()
+        self.center_path.append((int(((bbox[0]) + (bbox[2])) / 2), int(((bbox[1]) + (bbox[3])) / 2)))
+        if len(self.center_path) > nn_budget:
+            self.center_path = self.center_path[-nn_budget:]
 
         self.hits += 1
         self.time_since_update = 0

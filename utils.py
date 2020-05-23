@@ -136,7 +136,9 @@ class HSV(object):
 
 
 def judge_color(Judge_HSV, img):
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    # for the speed
+    # img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     h, w, _ = img.shape
     # print(img.shape)
     blue_sum, yellow_sum, green_sum = 0, 0, 0
@@ -216,7 +218,8 @@ def judge_vehicle_type(vehicle_class, vehicle_score, height, plate, p_color):
     if vehicle_class in [VehicleClass.bus, VehicleClass.coach]:
         # vehicle_class = judge_bus_coach_by_plate(plate)
         # vehicle_score = plate_constant_score
-        vehicle_score += (1 - vehicle_score) / 3
+        # vehicle_score += (1 - vehicle_score) / 3
+        vehicle_score = 0.999
         vehicle_class = VehicleClass.coach
         pass
 

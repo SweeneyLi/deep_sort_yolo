@@ -134,10 +134,12 @@ class YOLO(object):
             return_boxs.append([x, y, w, h])
 
             # return_boxs.append([x, y, x + w, y + h])
-            if h > 400 and y > image.size[0] / 2:
+            # if h > 400 and y > image.size[0] / 2:
+            if h > 400 and c != VehicleClass.car.value:
                 plate, p_color, p_score = detect_class_by_plate(np.array(image)[y:y + h, x: x + w, :], min_plate_score)
             else:
                 plate, p_color, p_score = None, None, 0
+            # plate, p_color, p_score = None, None, 0
 
             c, out_scores[i] = judge_vehicle_type(c, out_scores[i], h, plate, p_color)
             return_plate.append(plate)
