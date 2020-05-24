@@ -163,68 +163,67 @@ video_list = [r"D:\WorkSpaces\videos\DJI_0005.MOV"]
 
 
 def run():
-    for video_path in video_list:
-        goal = video_path.split(".")[0].split("\\")[-1]
-        print(goal)
-        output_path = "output/r_%s.mov" % goal
-        vehicle_file = "output/vehicle_%s.csv" % goal
-        sum_file = "output/num_%s.csv" % goal
-
-        # lp = LineProfiler()
-        # lp.add_function(yolo.detect_image)
-        # lp_wrapper = lp(main)
-        # lp_wrapper(video_path, output_path, vehicle_file, sum_file, goal)
-        # lp.print_stats()
-
-        main(video_path, output_path, vehicle_file, sum_file, goal)
+    # for video_path in video_list:
+    #     goal = video_path.split(".")[0].split("\\")[-1]
+    #     print(goal)
+    #     output_path = "output/r_%s.mov" % goal
+    #     vehicle_file = "output/vehicle_%s.csv" % goal
+    #     sum_file = "output/num_%s.csv" % goal
+    #
+    #     # lp = LineProfiler()
+    #     # lp.add_function(yolo.detect_image)
+    #     # lp_wrapper = lp(main)
+    #     # lp_wrapper(video_path, output_path, vehicle_file, sum_file, goal)
+    #     # lp.print_stats()
+    #
+    #     main(video_path, output_path, vehicle_file, sum_file, goal)
 
     # ===================================================================
-    # parameter_file = open("output/para/parameter.csv", 'w', encoding='gbk')
-    # csv_writer = csv.writer(parameter_file)
-    # csv_writer.writerow(['num', 'n_init', 'max_age', 'nn_budget', 'avg_time'] +
-    #                     ["bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
-    #                      "car_h", "car_hc",
-    #                      "bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
-    #                      "car_h", "car_hc"])
-    #
-    # n_init_list = [5, 10, 15]
-    # yolo_score_list = [0.3, 0.4, 0.5]
-    # model_image_sizet_list = [(640, 640), (608, 608)]
-    # # height_of_heavy_truck_list = [850, 900, 950, 1000]
-    # # height_of_container_truck_list = [1250, 1300]
-    #
-    # num = 0
-    # global yolo_score
-    # global model_image_size
-    # global n_init
-    #
-    # for i in model_image_sizet_list:
-    #     for j in max_age_list:
-    #         for k in nn_budget_list:
-    #             n_init = i
-    #             max_age = j
-    #             nn_budget = k
-    #
-    #             path = 'output/para/' + str(num)
-    #             if not os.path.exists(path):
-    #                 os.mkdir(path)
-    #
-    #             video_path = video_list[0]
-    #             goal = video_path.split(".")[0].split("\\")[-1]
-    #             output_path = "output/para/%s/r_%s.mov" % (num, goal)
-    #             vehicle_file = "output/para/%s/vehicle_%s.csv" % (num, goal)
-    #             sum_file = "output/para/%s/nums_%s.csv" % (num, goal)
-    #             leave_list, time_need = main(video_path, output_path, vehicle_file, sum_file, goal)
-    #             # leave_list, time_need = [[],[]], 0
-    #             csv_writer.writerow(
-    #                 [num, n_init, max_age, nn_budget, time_need] + leave_list[0] +
-    #                 leave_list[1])
-    #             num += 1
-    #
-    #             if os.path.exists("output/stop.txt"):
-    #                 parameter_file.close()
-    #                 return
-    # parameter_file.close()
+    parameter_file = open("output/para/parameter.csv", 'w', encoding='gbk')
+    csv_writer = csv.writer(parameter_file)
+    csv_writer.writerow(['num', 'n_init', 'max_age', 'yolo_score', 'avg_time'] +
+                        ["bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
+                         "car_h", "car_hc",
+                         "bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
+                         "car_h", "car_hc"])
+
+    n_init_list = [7, 8, 9, 10]
+    yolo_score_list = [0.5]
+    max_age_list = [20, 30, 40]
+    # height_of_heavy_truck_list = [850, 900, 950, 1000]
+    # height_of_container_truck_list = [1250, 1300]
+
+    num = 0
+    global n_init
+    global max_age
+    global yolo_score
+
+    for i in yolo_score_list:
+        for j in n_init_list:
+            for k in max_age_list:
+                n_init = j
+                max_age = k
+
+                path = 'output/para/' + str(num)
+                if not os.path.exists(path):
+                    os.mkdir(path)
+
+                video_path = video_list[0]
+                goal = video_path.split(".")[0].split("\\")[-1]
+                output_path = "output/para/%s/r_%s.mov" % (num, goal)
+                vehicle_file = "output/para/%s/vehicle_%s.csv" % (num, goal)
+                sum_file = "output/para/%s/nums_%s.csv" % (num, goal)
+                leave_list, time_need = main(video_path, output_path, vehicle_file, sum_file, goal)
+                # leave_list, time_need = [[],[]], 0
+                csv_writer.writerow(
+                    [num, n_init, max_age, yolo_score, time_need] + leave_list[0] +
+                    leave_list[1])
+                num += 1
+
+                if os.path.exists("output/stop.txt"):
+                    parameter_file.close()
+                    return
+    parameter_file.close()
 
 
 yolo = YOLO()

@@ -6,7 +6,7 @@ model_image_size = (640, 640)
 
 
 # deep sort
-n_init = 7
+n_init = 10
 max_age = 30
 max_cosine_distance = 0.6  # 余弦距离的控制阈值 0.5
 nn_budget = 40  # len of feature maps and center_path
