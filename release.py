@@ -16,6 +16,7 @@ from utils import *
 import csv
 import glob
 import numpy as np
+from math import ceil
 
 from line_profiler import LineProfiler
 
@@ -39,7 +40,10 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     # the cap
     cap = cv2.VideoCapture(video_path)
     cap.set(6, cv2.VideoWriter.fourcc('m', 'p', '4', 'v'))
-    fps = cap.get(cv2.CAP_PROP_FPS)
+    fps = ceil(cap.get(cv2.CAP_PROP_FPS))
+
+    Interval = fps * 30
+
     Width, Height = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     Half_Height = Height / 2
 
@@ -69,11 +73,12 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
     start = time.time()
     skip_frame = 0
+    interval_frame = Interval
     while 1:
         ret, frame = cap.read()  # frame shape 640*480*3
         if not ret:
             break
-
+        interval_frame -= 1
 
         if skip_frame:
             skip_frame -= 1
@@ -122,6 +127,12 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
             if direction != -1:
                 leave_list[direction][i.v_class.value] += 1
+
+        if not interval_frame:
+            interval_frame = Interval
+            csv_writer2.writerow(leave_list[0] + leave_list[1])
+            print("in:", (leave_list[0]), "out:", (leave_list[1]))
+
     cap.release()
     cv2.destroyAllWindows()
 
