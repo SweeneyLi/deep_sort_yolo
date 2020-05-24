@@ -11,7 +11,6 @@ from deep_sort import nn_matching
 from deep_sort.detection import Detection
 from deep_sort.tracker import Tracker
 from tools import generate_detections as gdet
-from collections import deque
 from keras import backend
 from utils import *
 import csv
@@ -21,15 +20,16 @@ import numpy as np
 
 from line_profiler import LineProfiler
 
-
+# os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
+
 warnings.filterwarnings('ignore')
 backend.clear_session()
 # =====================================================================================================================
 
 
 writeVideo_flag = True
-show_real_time = True
+show_real_time = False
 cut_size = 250
 # cut_size = 0
 
@@ -47,12 +47,15 @@ end_frame = None
 # pts = [deque(maxlen=30) for _ in range(9999)]
 # pts = {}
 
+# test
 np.random.seed(100)
 COLORS = np.random.randint(0, 255, size=(200, 3), dtype="uint8")
 
 Width = None
 Height = None
 title_height = 182
+
+
 
 def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     start = time.time()
@@ -100,6 +103,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     leave_list = [[0 for _ in range(11)], [0 for _ in range(11)]]
 
     start = time.time()
+    skip_frame = 0
     while 1:
         ret, frame = cap.read()  # frame shape 640*480*3
         if not ret:
@@ -110,20 +114,36 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         # if frame_index & 1 == 1:
         #     continue
 
-        if start_frame and frame_index < start_frame:
-            continue
-        if end_frame and frame_index >= end_frame:
-            break
+        # test
+        # if start_frame and frame_index < start_frame:
+        #     continue
+        # if end_frame and frame_index >= end_frame:
+        #     break
         t1 = time.time()
 
+        if skip_frame:
+            skip_frame -= 1
+            continue
         # frame = imutils.rotate(frame, -90)
 
-        if cut_size:
-            frame = frame[cut_size:, :, :]  # cut the top of image
+        # if cut_size:
+        #     frame = frame[cut_size:, :, :]  # cut the top of image
 
         image = Image.fromarray(frame)
         # image = Image.fromarray(frame[..., ::-1])  # bgr to rgb
+
+        # # test
+        # lp = LineProfiler()
+        # lp.add_function(detect_class_by_plate)
+        # lp.add_function(judge_vehicle_type)
+        # lp_wrapper = lp(yolo.detect_image)
+        # boxs, class_names, class_scores, plate_list, p_score_list = lp_wrapper(image)
+        # lp.print_stats()
+
         boxs, class_names, class_scores, plate_list, p_score_list = yolo.detect_image(image)
+
+        if len(boxs) < 3:
+            skip_frame = 3 - len(boxs)
 
         features = encoder(frame, boxs)
         detections = [Detection(bbox, feature, v_class, v_score, plate, p_score) for
@@ -135,20 +155,15 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         indices = preprocessing.non_max_suppression(boxes, nms_max_overlap, max_area_ratio, scores)
         detections = [detections[i] for i in indices]
 
-        # Call the tracker
+
         tracker.predict()
         tracker.update(detections)
 
         for i in tracker.leaves:
-            # path = pts[i.track_id]
             path = i.center_path
             direction = -1
-
-            # if len(path) < 10:
-            #     print(frame_index, i.track_id, len(path), path[0][1] - path[-1][1])
             if len(path) > 10:
                 if path[0][1] - path[-1][1] < 0 and i.to_tlbr_int()[3] > Height / 2:
-                    # if path[0][1] - path[-1][1] < 0:
                     direction = 0
                 elif path[0][1] - path[-1][1] > 0 and i.to_tlbr_int()[3] < Height / 2:
                     direction = 1
@@ -172,7 +187,6 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
                 #     [frame_index, direction, i.track_id, i.v_class.name, i.v_score, i.plate, i.p_score, len(path)]
                 #     + position)
 
-            # del pts[i.track_id]
 
         if writeVideo_flag:
             i = int(0)
@@ -204,17 +218,8 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
                 i += 1
                 center = (int(((bbox[0]) + (bbox[2])) / 2), int(((bbox[1]) + (bbox[3])) / 2))
-                # if not pts.get(track.track_id):
-                #     pts[track.track_id] = deque(maxlen=30)
-                # pts[track.track_id].append(center)
                 cv2.circle(frame, (center), 5, color, 5)
 
-                # draw motion path
-                # for j in range(1, len(pts[track.track_id])):
-                #     if pts[track.track_id][j - 1] is None or pts[track.track_id][j] is None:
-                #         continue
-                #     thickness = int(np.sqrt(64 / float(j + 1)) * 2)
-                #     cv2.line(frame, (pts[track.track_id][j - 1]), (pts[track.track_id][j]), (color), thickness)
                 for j in range(1, len(track.center_path)):
                     if track.center_path[j - 1] is None or track.center_path[j] is None:
                         continue
@@ -245,9 +250,10 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
             fps = (fps + (1. / (time.time() - t1))) / 2
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            # if cv2.waitKey(1) & 0xFF == ord('q'):
+            #     break
 
+        # test
         if frame_index % 300 == 0:
             print("1s cost:" + str((time.time() - start) / 10))
             start = time.time()
@@ -255,8 +261,8 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
             csv_writer2.writerow(leave_list[0] + leave_list[1])
 
         # test
-        # if os.path.exists("output/stop.txt"):
-        #     break
+        if os.path.exists("output/stop.txt"):
+            break
 
     csv_writer2.writerow(leave_list[0] + leave_list[1])
 
@@ -273,7 +279,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     if writeVideo_flag:
         out.release()
         # vehicle_file.close()
-        sum_file.close()
+    sum_file.close()
     cv2.destroyAllWindows()
 
     return leave_list, time_need
@@ -284,8 +290,6 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 video_list = [r"D:\WorkSpaces\videos\DJI_0005.MOV"]
 
 
-# video_list = [r"D:\WorkSpaces\videos\60s.mp4"]
-
 def run():
     for video_path in video_list:
         goal = video_path.split(".")[0].split("\\")[-1]
@@ -295,33 +299,39 @@ def run():
         sum_file = "output/num_%s.csv" % goal
 
         # lp = LineProfiler()
+        # lp.add_function(yolo.detect_image)
         # lp_wrapper = lp(main)
         # lp_wrapper(video_path, output_path, vehicle_file, sum_file, goal)
         # lp.print_stats()
+
         main(video_path, output_path, vehicle_file, sum_file, goal)
 
     # ===================================================================
     # parameter_file = open("output/para/parameter.csv", 'w', encoding='gbk')
     # csv_writer = csv.writer(parameter_file)
-    # csv_writer.writerow(['num', 'n_init', 'max_age', 'cut_size', 'avg_time'] +
+    # csv_writer.writerow(['num', 'n_init', 'max_age', 'nn_budget', 'avg_time'] +
     #                     ["bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
     #                      "car_h", "car_hc",
     #                      "bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
     #                      "car_h", "car_hc"])
     #
-    # n_init_list = [4, 3, 2]
-    # max_age_list = [10]
-    # cut_size_list = [700, 500]
+    # n_init_list = [5, 10, 15]
+    # yolo_score_list = [0.3, 0.4, 0.5]
+    # model_image_sizet_list = [(640, 640), (608, 608)]
     # # height_of_heavy_truck_list = [850, 900, 950, 1000]
     # # height_of_container_truck_list = [1250, 1300]
     #
     # num = 0
-    # for i in n_init_list:
+    # global yolo_score
+    # global model_image_size
+    # global n_init
+    #
+    # for i in model_image_sizet_list:
     #     for j in max_age_list:
-    #         for k in cut_size_list:
+    #         for k in nn_budget_list:
     #             n_init = i
     #             max_age = j
-    #             cut_size = k
+    #             nn_budget = k
     #
     #             path = 'output/para/' + str(num)
     #             if not os.path.exists(path):
@@ -332,10 +342,10 @@ def run():
     #             output_path = "output/para/%s/r_%s.mov" % (num, goal)
     #             vehicle_file = "output/para/%s/vehicle_%s.csv" % (num, goal)
     #             sum_file = "output/para/%s/nums_%s.csv" % (num, goal)
-    #             leave_list, time_need = main(video_path, output_path, vehicle_file, sum_file, goal, cut_size)
+    #             leave_list, time_need = main(video_path, output_path, vehicle_file, sum_file, goal)
     #             # leave_list, time_need = [[],[]], 0
     #             csv_writer.writerow(
-    #                 [num, n_init, max_age, cut_size, time_need] + leave_list[0] +
+    #                 [num, n_init, max_age, nn_budget, time_need] + leave_list[0] +
     #                 leave_list[1])
     #             num += 1
     #

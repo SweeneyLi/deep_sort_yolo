@@ -5,21 +5,17 @@ import time
 import matplotlib.pyplot as plt
 from PIL import Image
 
-ori = cv2.imread(r"D:\WorkSpaces\deep_sort_yolov3\output\plate\6.jpg")
-res = 0
-for i in range(100):
-    s = time.time()
-    # img = Image.fromarray(cv2.cvtColor(ori, cv2.COLOR_BGR2RGB))
-    img = Image.fromarray(ori)
-    # img = img[..., ::-1]
-    e = time.time() - s
+from parameter import  nn_budget
 
-    # s2 = time.time()
-    # # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    # img2 = Image.fromarray(ori[..., ::-1])
-    # e2 = time.time() - s2
-    # res += e - e2
+def main():
+    print(nn_budget)
 
-    res += e
 
-print(res / 100)
+def my():
+    global nn_budget
+    nn_budget = 100
+    main()
+    print(nn_budget)
+
+
+my()

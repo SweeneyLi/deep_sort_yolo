@@ -5,16 +5,13 @@ Run a YOLO_v3 style detection model on test images.
 """
 
 import colorsys
-import os
 import random
-from timeit import time
-from timeit import default_timer as timer  ### to calculate FPS
-import cv2
 import numpy as np
 from keras import backend as K
 # from keras.models import load_model
 from tensorflow.keras.models import load_model
-from PIL import Image, ImageFont, ImageDraw
+# import tensorflow as tf
+# from PIL import Image, ImageFont, ImageDraw
 
 from yolo3.model import yolo_eval
 from yolo3.utils import letterbox_image
@@ -27,8 +24,6 @@ ap.add_argument("-c", "--class", help="name of class", default="person")
 args = vars(ap.parse_args())
 
 model_dir = 'yolov3_640'
-
-
 # model_dir = 'yolov4_ori_anchor'
 
 class YOLO(object):
@@ -44,7 +39,19 @@ class YOLO(object):
 
         self.class_names = self._get_class()
         self.anchors = self._get_anchors()
+
+
+        # config = tf.ConfigProto()
+        # config.gpu_options.allow_growth = True
+        # self.sess = tf.Session(config=config)
+        # K.set_session(self.sess)
+
         self.sess = K.get_session()
+
+        # config = tf.ConfigProto()
+        # config.gpu_options.allow_growth = True
+        # self.sess = tf.Session(config=config)
+        # K.set_session(self.sess)
 
         self.is_fixed_size = self.model_image_size != (None, None)
         self.boxes, self.scores, self.classes = self.generate()
@@ -135,7 +142,7 @@ class YOLO(object):
 
             # return_boxs.append([x, y, x + w, y + h])
             # if h > 400 and y > image.size[0] / 2:
-            if h > 400 and c != VehicleClass.car.value:
+            if h > 400:
                 plate, p_color, p_score = detect_class_by_plate(np.array(image)[y:y + h, x: x + w, :], min_plate_score)
             else:
                 plate, p_color, p_score = None, None, 0

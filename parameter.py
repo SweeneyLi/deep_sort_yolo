@@ -1,12 +1,12 @@
 # yolo
-yolo_score = 0.30
+yolo_score = 0.4
 yolo_iou = 0.6
 max_iou_distance = 0.7
 model_image_size = (640, 640)
 
 
 # deep sort
-n_init = 4
+n_init = 10
 max_age = 30
 max_cosine_distance = 0.6  # 余弦距离的控制阈值 0.5
 nn_budget = 30  # len of feature maps and center_path
@@ -18,7 +18,7 @@ max_area_ratio = 0.4
 min_plate_score = 0.3
 
 height_of_heavy_truck = 900
-height_of_container_truck = 1300
+height_of_container_truck = 1350
 
 height_heavy_truck_score = 0.98
 height_container_truck_score = 1.01

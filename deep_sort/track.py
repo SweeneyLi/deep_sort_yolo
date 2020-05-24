@@ -1,6 +1,6 @@
 # vim: expandtab:ts=4:sw=4
 from utils import VehicleClass
-from parameter import  nn_budget
+from parameter import nn_budget
 
 car_class = [VehicleClass.car.value, VehicleClass.car_h.value, VehicleClass.car_nh.value, VehicleClass.car_hc.value,
              VehicleClass.taxi.value]
