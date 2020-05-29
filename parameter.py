@@ -1,15 +1,27 @@
+# global variable
+g_env = {
+    'input': {
+        'height': 0,
+        'width': 0
+    }
+}
+
 # yolo
 yolo_score = 0.5
 yolo_iou = 0.6
 max_iou_distance = 0.7
 model_image_size = (640, 640)
+# model_image_size = (960, 544)
 
-
+speedUp = True
+speedRate = 5
 # deep sort
-n_init = 10
-max_age = 30
-max_cosine_distance = 0.6  # 余弦距离的控制阈值 0.5
-nn_budget = 40  # len of feature maps and center_path
+n_init = max(3, 10 / speedRate)
+max_age = max(10, 20 / speedRate)
+max_cosine_distance = 0.6 if speedUp else 0.8
+nn_budget = 20
+
+
 nms_max_overlap = 0.55  # 非极大抑制的阈值 0.3
 
 max_area_ratio = 0.4

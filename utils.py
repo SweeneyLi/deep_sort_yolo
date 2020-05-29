@@ -79,6 +79,12 @@ def detect_class_by_plate(image, min_plate_score=0.3):
         return None, None, 0
 
     p_color = judge_plate_color(image, plate_info[0][2])
+
+    # uuid_str = uuid.uuid4().hex
+    # tmp_file_name = '%s%s_%s.jpg' % (plate_info[0][0], p_color.name, uuid_str)
+    # cv2.rectangle(image, (int(0), int(h / 4 * 3)), (int(w), int(h)), (1, 1, 1), 5)
+    # plt.imsave(r"output/tmp/" + tmp_file_name, image)
+
     return plate_info[0][0], p_color, plate_info[0][1]
 
 
@@ -142,8 +148,8 @@ def judge_color(Judge_HSV, img):
     h, w, _ = img.shape
     # print(img.shape)
     blue_sum, yellow_sum, green_sum = 0, 0, 0
-    for i in range(h):
-        for j in range(w):
+    for i in range(0, h, 1):
+        for j in range(0, w, 1):
             if Judge_HSV.isBlue(img[i][j]):
                 blue_sum += 1
             elif Judge_HSV.isYellow(img[i][j]):
@@ -193,7 +199,7 @@ def judge_plate_color(image, position):
     # uuid_str = uuid.uuid4().hex
     # tmp_file_name = 'tmpfile_%s.jpg' % uuid_str
     #
-    # plt.imsave("output/color/" + str(color.name) + '/' + tmp_file_name, plate_img)
+    # plt.imsave("output/color/" + str(color.name) + '/' + tmp_file_name, cv2.cvtColor(plate_img, cv2.COLOR_RGB2BGR))
     # print(color.name)
 
     return color
