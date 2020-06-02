@@ -3,8 +3,10 @@ g_env = {
     'input': {
         'height': 0,
         'width': 0
-    }
+    },
 }
+
+plate_aero_height_ratio = 3 / 4         # the max height of the area which need to detect plate
 
 # yolo
 yolo_score = 0.5
@@ -22,7 +24,7 @@ max_cosine_distance = 0.6 if speedUp else 0.8
 nn_budget = 20
 
 
-nms_max_overlap = 0.55  # 非极大抑制的阈值 0.3
+nms_max_overlap = 0.55  # no max depression
 
 max_area_ratio = 0.4
 

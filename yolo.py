@@ -42,7 +42,7 @@ class YOLO(object):
         self.class_names = self._get_class()
         self.anchors = self._get_anchors()
 
-        self.plate_aero_height = g_env['input']['height'] / 4 * 3
+        self.plate_aero_height = g_env['input']['height'] * plate_aero_height_ratio
         # config = tf.ConfigProto()
         # config.gpu_options.allow_growth = True
         # self.sess = tf.Session(config=config)

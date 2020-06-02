@@ -29,7 +29,7 @@ backend.clear_session()
 
 
 writeVideo_flag = True
-show_real_time = False
+show_real_time = True
 # cut_size = 250
 cut_size = 0
 
@@ -96,7 +96,6 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
     tracker = Tracker(metric, max_iou_distance=max_iou_distance, max_age=max_age, n_init=n_init)
 
-    fps = 0.0
 
     time2 = time.time()
     print("load need: " + str(time2 - start) + 's')
@@ -107,6 +106,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     Interval = fps * 30
     interval_frame = Interval
     skip_frame = 0
+    current_nums = 0
     while 1:
         ret, frame = cap.read()  # frame shape 640*480*3
         if not ret:
@@ -148,6 +148,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         # boxs, class_names, class_scores, plate_list, p_score_list = yolo.detect_image2(frame)
         boxs, class_names, class_scores, plate_list, p_score_list = yolo.detect_image(image)
 
+        current_nums = len(boxs)
         if len(boxs) < 5:
             skip_frame = 5 - len(boxs)
 
@@ -239,6 +240,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
             cv2.putText(frame, "frame:%d" % frame_index, (int(0), int(250)), 0, 5e-3 * 200, (0, 255, 0), 4)
             cv2.putText(frame, "FPS: %f" % (fps), (int(0), int(300)), 0, 5e-3 * 200, (0, 255, 0), 4)
+            cv2.putText(frame, "nums: %d" % (current_nums), (int(0), int(350)), 0, 5e-3 * 200, (0, 255, 0), 4)
 
             cv2.putText(frame, "in:" + str(sum(leave_list[0])), (int(0), int(80)), 0, 5e-3 * 200, (255, 123, 255), 3)
             cv2.putText(frame, "out:" + str(sum(leave_list[1])), (int(0), int(180)), 0, 5e-3 * 200, (255, 123, 255), 3)
@@ -298,7 +300,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 # video_list = [r"D:\WorkSpaces\videos\DJI_0005.MOV"]
 # video_list = [r"D:\WorkSpaces\videos\123.mp4"]
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4",r"D:\video\B6_2020_5_27_2.mp4"]
-video_list = [r"D:\video\B6_2020_5_27_1.mp4"]
+video_list = [r"D:\video\B6_2020_6_1_1.mp4"]
 
 def run():
     for video_path in video_list:

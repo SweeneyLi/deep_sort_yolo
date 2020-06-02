@@ -28,11 +28,6 @@ backend.clear_session()
 # =====================================================================================================================
 
 
-Width = None
-Height = None
-Half_Height = None
-
-
 def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     start = time.time()
 
@@ -82,8 +77,8 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         frame_index += 1
         interval_frame -= 1
 
-        if frame_index % speedRate != 0:
-            continue
+        # if frame_index % speedRate != 0:
+        #     continue
 
         # if skip_frame:
         #     skip_frame -= 1
@@ -166,6 +161,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 # video_list = [r"D:\WorkSpaces\videos\123.mp4"]
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4", r"D:\video\B6_2020_5_27_2.mp4"]
 video_list = [r"D:\video\B6_2020_5_27_1.mp4"]
+
 
 def run():
     for video_path in video_list:
