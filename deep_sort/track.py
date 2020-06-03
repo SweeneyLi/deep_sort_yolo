@@ -167,8 +167,8 @@ class Track:
         if self.state == TrackState.Tentative and self.hits >= self._n_init:
             self.state = TrackState.Confirmed
 
-        if self.v_class.value in car_class and detection.v_class.value in car_class:
-            if detection.v_class.value >= self.v_class.value:
+        if self.v_class in car_class and detection.v_class in car_class:
+            if detection.v_class >= self.v_class:
                 self.v_class = detection.v_class
                 self.v_score = detection.v_score
         elif detection.v_score >= self.v_score:

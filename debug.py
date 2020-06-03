@@ -33,11 +33,11 @@ show_real_time = True
 # cut_size = 250
 cut_size = 0
 
-start_frame = None
+# start_frame = None
 # end_frame = None
 
 # start_frame = 70
-end_frame = 61 * 50 + 1
+# end_frame = 61 * 50 + 1
 
 # start_frame = 227 * 30
 # end_frame = 20
@@ -215,7 +215,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
                 cv2.rectangle(frame, (int(bbox[0]), int(bbox[1]) - 50), (int(bbox[2]), int(bbox[1])), (color),
                               cv2.FILLED)
                 cv2.putText(frame,
-                            str(track.track_id) + "-" + str(track.v_class.name) + '-' + str(round(track.v_score, 2)),
+                            str(track.track_id) + "-" + str(VehicleClass(track.v_class).name) + '-' + str(round(track.v_score, 2)),
                             (int(bbox[0]), int(bbox[1])), 0,
                             5e-3 * 300, (255, 255, 255), 3)
 
@@ -300,7 +300,8 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 # video_list = [r"D:\WorkSpaces\videos\DJI_0005.MOV"]
 # video_list = [r"D:\WorkSpaces\videos\123.mp4"]
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4",r"D:\video\B6_2020_5_27_2.mp4"]
-video_list = [r"D:\video\B6_2020_6_1_1.mp4"]
+# video_list = [r"D:\video\B6_2020_6_1_1.mp4"]
+video_list = [r"D:\video\B6_2020_6_1_1_processed.mov"]
 
 def run():
     for video_path in video_list:

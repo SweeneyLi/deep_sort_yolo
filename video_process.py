@@ -101,11 +101,18 @@ def video_process(video_path, new_fps, speed_rate, new_position):
 
     out = cv2.VideoWriter(output_path, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'), new_fps, (width, height))
     cap = cv2.VideoCapture(video_path)
-
+    fps = cap.get(cv2.CAP_PROP_FPS)
     frame_cnt = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+
+    start_frame = (4 * 60 - 5)* fps
+    end_frame = (6 * 60 - 5)* fps + 1
 
     for i in trange(frame_cnt):
         ret, frame = cap.read()
+        if i < start_frame:
+            continue
+        if i > end_frame:
+            break
         if i % speed_rate == 0:
             frame = frame[left_top[1]:bottom_right[1], left_top[0]: bottom_right[0], :]
             out.write(frame)

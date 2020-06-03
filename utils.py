@@ -27,6 +27,20 @@ class VehicleClass(Enum):
     car_h = 9
     car_hc = 10
 
+class VehicleClass2(Enum):
+    car = 2
+    motorbike = 3
+    bus = 5
+    truck = 7
+
+
+    taxi = 1
+    coach = 2
+    heavy_truck = 5
+    container_truck = 7
+    car_nh = 8
+    car_h = 9
+    car_hc = 10
 
 class_dict = {'bus': 0, 'taxi': 1, 'coach': 2, 'car': 3, 'motor': 4, 'heavy_truck': 5, 'van': 6, 'container_truck': 7,
               'car_hc': 8, 'car_h': 9, 'car_nh': 10}

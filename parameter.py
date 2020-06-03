@@ -16,7 +16,7 @@ model_image_size = (640, 640)
 # model_image_size = (960, 544)
 
 speedUp = True
-speedRate = 5
+speedRate = 2
 # deep sort
 n_init = max(3, 10 / speedRate)
 max_age = max(10, 20 / speedRate)
