@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import
 from timeit import time
 import warnings
 from PIL import Image
-from yolo import YOLO
+from yolo import YOLO, Yolo4
 from deep_sort import preprocessing
 from deep_sort import nn_matching
 from deep_sort.detection import Detection
@@ -36,8 +36,8 @@ cut_size = 0
 # start_frame = None
 # end_frame = None
 
-# start_frame = 70
-# end_frame = 61 * 50 + 1
+# start_frame = 100
+# end_frame = 181
 
 # start_frame = 227 * 30
 # end_frame = 20
@@ -123,16 +123,13 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         #     continue
         # if end_frame and frame_index >= end_frame:
         #     break
+
         t1 = time.time()
 
         # if skip_frame:
         #     skip_frame -= 1
         #     continue
 
-        # frame = imutils.rotate(frame, -90)
-
-        # if cut_size:
-        #     frame = frame[cut_size:, :, :]  # cut the top of image
 
         image = Image.fromarray(frame)
         # image = Image.fromarray(frame[..., ::-1])  # bgr to rgb
@@ -175,7 +172,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
                     direction = 1
 
             if direction != -1:
-                leave_list[direction][i.v_class.value] += 1
+                leave_list[direction][i.v_class] += 1
                 # position = i.to_tlbr_int()
                 # x = int(position[0])
                 # y = int(position[1])
@@ -246,6 +243,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
             cv2.putText(frame, "out:" + str(sum(leave_list[1])), (int(0), int(180)), 0, 5e-3 * 200, (255, 123, 255), 3)
             cv2.putText(frame, print_leave_list(leave_list[0]), (int(300), int(80)), 0, 5e-3 * 140, (255, 255, 255), 2)
             cv2.putText(frame, print_leave_list(leave_list[1]), (int(300), int(180)), 0, 5e-3 * 140, (255, 255, 255), 2)
+
 
             # show the instant result
             if show_real_time:
@@ -368,5 +366,6 @@ def run():
     # parameter_file.close()
 
 
-yolo = YOLO()
+# yolo = YOLO()
+yolo = Yolo4()
 run()

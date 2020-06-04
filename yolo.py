@@ -18,14 +18,15 @@ from yolo3.utils import letterbox_image
 
 from yolo4.model import yolo_eval, yolo4_body
 from yolo4.utils import letterbox_image
+from keras.layers import Input
 
 import argparse
 from utils import *
 
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--input", help="path to input video", default="./test_video/det_t1_video_00315_test.avi")
-ap.add_argument("-c", "--class", help="name of class", default="person")
-args = vars(ap.parse_args())
+# ap = argparse.ArgumentParser()
+# ap.add_argument("-i", "--input", help="path to input video", default="./test_video/det_t1_video_00315_test.avi")
+# ap.add_argument("-c", "--class", help="name of class", default="person")
+# args = vars(ap.parse_args())
 
 model_dir = 'yolov3_640'
 # model_dir = 'yolov4_start'
@@ -157,7 +158,7 @@ class YOLO(object):
             return_plate.append(plate)
             return_p_scores.append(p_score)
 
-            return_class_name.append(VehicleClass(c))
+            return_class_name.append(c)
             return_scores.append(out_scores[i])
 
         return return_boxs, return_class_name, return_scores, return_plate, return_p_scores
@@ -280,7 +281,7 @@ class Yolo4(object):
     def __init__(self):
         self.model_path = './model_data/' + 'yolov4_start' + '/yolo.h5'
         self.anchors_path = 'model_data/' + 'yolov4_start' + '/yolo_anchors.txt'
-        self.classes_path = 'model_data/coco.names'
+        self.classes_path = 'model_data/' + 'yolov4_start' + '/coco.names'
 
         self.score = yolo_score
         self.iou = yolo_iou
@@ -318,6 +319,11 @@ class Yolo4(object):
 
         for i, c in reversed(list(enumerate(out_classes))):
 
+            if c not in [2, 3, 5, 7]:
+                continue
+
+            c = v4_change_list[c]
+
             box = out_boxes[i]
             x = int(box[1])
             y = int(box[0])
@@ -350,44 +356,4 @@ class Yolo4(object):
 
         return return_boxs, return_class_name, return_scores, return_plate, return_p_scores
 
-        # print('Found {} boxes for {}'.format(len(out_boxes), 'img'))
-        #
-        # font = ImageFont.truetype(font='font/FiraMono-Medium.otf',
-        #             size=np.floor(3e-2 * image.size[1] + 0.5).astype('int32'))
-        # thickness = (image.size[0] + image.size[1]) // 300
-        #
-        # for i, c in reversed(list(enumerate(out_classes))):
-        #     predicted_class = self.class_names[c]
-        #     box = out_boxes[i]
-        #     score = out_scores[i]
-        #
-        #     label = '{} {:.2f}'.format(predicted_class, score)
-        #     draw = ImageDraw.Draw(image)
-        #     label_size = draw.textsize(label, font)
-        #
-        #     top, left, bottom, right = box
-        #     top = max(0, np.floor(top + 0.5).astype('int32'))
-        #     left = max(0, np.floor(left + 0.5).astype('int32'))
-        #     bottom = min(image.size[1], np.floor(bottom + 0.5).astype('int32'))
-        #     right = min(image.size[0], np.floor(right + 0.5).astype('int32'))
-        #     print(label, (left, top), (right, bottom))
-        #
-        #     if top - label_size[1] >= 0:
-        #         text_origin = np.array([left, top - label_size[1]])
-        #     else:
-        #         text_origin = np.array([left, top + 1])
-        #
-        #     # My kingdom for a good redistributable image drawing library.
-        #     for i in range(thickness):
-        #         draw.rectangle(
-        #             [left + i, top + i, right - i, bottom - i],
-        #             outline=self.colors[c])
-        #     draw.rectangle(
-        #         [tuple(text_origin), tuple(text_origin + label_size)],
-        #         fill=self.colors[c])
-        #     draw.text(text_origin, label, fill=(0, 0, 0), font=font)
-        #     del draw
-        #
-        # end = timer()
-        # print(end - start)
-        # return image
+v4_change_list = [0, 0, 3, 4, 0, 0, 0, 5]

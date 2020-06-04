@@ -76,7 +76,7 @@ def readVideo(pathName):
             (left_top, bottom_right) = get_rect(frame, title='get_rect')
 
         cv2.namedWindow("Video", 0)
-        cv2.resizeWindow('Video', 1024, 768)
+        cv2.resizeWindow('Video', 960, 540)
         cv2.imshow('frame', frame[left_top[1]:bottom_right[1], left_top[0]: bottom_right[0], :])
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -128,24 +128,48 @@ def video_process(video_path, new_fps, speed_rate, new_position):
 
 # video_path = r"D:\video\B6_2020_5_27_1.mp4"
 # video_path = r"D:\WorkSpaces\deep_sort_yolov3\output\past\r_DJI_0010.mov"
-video_path = input("Please input your video path!\n")
+# 中文
+video_path = input("请输入视频路径!\n")
 import os
 while not os.path.exists(video_path):
-    video_path = input("The path is wrong! Please input again!\n")
+    video_path = input("该路径错误，请重新输入!\n")
 
 (left_top, bottom_right), fps = readVideo(video_path)
-print("The original fps of videos is %s" % fps)
+print("原视频的fps为 %s" % fps)
 try:
-    speed_rate = input("Which speed rate do you want? Please input speed rate. (default is 3 )\n")
+    speed_rate = input("请输入加速比，默认为3（直接回车）\n")
     speed_rate = 3 if speed_rate == '' else int(speed_rate)
-    new_fps = input("Which fps do you want? Please input new fps. (default means same fps)\n")
-    new_fps = fps if new_fps == '' else int(new_fps)
+    new_fps = input("请输入新的fps，默认为原fps/加速比（直接回车）\n")
+    new_fps = fps / speed_rate if new_fps == '' else int(new_fps)
 except Exception as e:
-    print("Please input the right format!")
+    print("输入格式错误!")
     print(e)
 
 if speed_rate != 1 or fps != new_fps:
     video_process(video_path, new_fps, speed_rate, (left_top, bottom_right))
-    print("End!")
+    print("转换完成!")
 else:
-    print("No need to change!")
+    print("无需转换!")
+
+# English
+# video_path = input("Please input your video path!\n")
+# import os
+# while not os.path.exists(video_path):
+#     video_path = input("The path is wrong! Please input again!\n")
+#
+# (left_top, bottom_right), fps = readVideo(video_path)
+# print("The original fps of videos is %s" % fps)
+# try:
+#     speed_rate = input("Which speed rate do you want? Please input speed rate. (default is 3 )\n")
+#     speed_rate = 3 if speed_rate == '' else int(speed_rate)
+#     new_fps = input("Which fps do you want? Please input new fps. (default means same fps)\n")
+#     new_fps = fps if new_fps == '' else int(new_fps)
+# except Exception as e:
+#     print("Please input the right format!")
+#     print(e)
+#
+# if speed_rate != 1 or fps != new_fps:
+#     video_process(video_path, new_fps, speed_rate, (left_top, bottom_right))
+#     print("End!")
+# else:
+#     print("No need to change!")

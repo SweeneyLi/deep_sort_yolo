@@ -18,8 +18,8 @@ model_image_size = (640, 640)
 speedUp = True
 speedRate = 2
 # deep sort
-n_init = max(3, 10 / speedRate)
-max_age = max(10, 20 / speedRate)
+n_init = max(3, int(10 / speedRate))
+max_age = max(10, int(20 / speedRate))
 max_cosine_distance = 0.6 if speedUp else 0.8
 nn_budget = 20
 

@@ -7,12 +7,6 @@ from parameter import *
 import uuid
 
 
-class PlateColor(Enum):
-    blue = 0
-    green = 1
-    yellow = 2
-
-
 # third data
 class VehicleClass(Enum):
     bus = 0
@@ -27,20 +21,7 @@ class VehicleClass(Enum):
     car_h = 9
     car_hc = 10
 
-class VehicleClass2(Enum):
-    car = 2
-    motorbike = 3
-    bus = 5
-    truck = 7
 
-
-    taxi = 1
-    coach = 2
-    heavy_truck = 5
-    container_truck = 7
-    car_nh = 8
-    car_h = 9
-    car_hc = 10
 
 class_dict = {'bus': 0, 'taxi': 1, 'coach': 2, 'car': 3, 'motor': 4, 'heavy_truck': 5, 'van': 6, 'container_truck': 7,
               'car_hc': 8, 'car_h': 9, 'car_nh': 10}
@@ -98,6 +79,7 @@ def detect_class_by_plate(image, min_plate_score=0.3):
     # tmp_file_name = '%s%s_%s.jpg' % (plate_info[0][0], p_color.name, uuid_str)
     # cv2.rectangle(image, (int(0), int(h / 4 * 3)), (int(w), int(h)), (1, 1, 1), 5)
     # plt.imsave(r"output/tmp/" + tmp_file_name, image)
+
 
     return plate_info[0][0], p_color, plate_info[0][1]
 
@@ -204,17 +186,11 @@ def judge_plate_color(image, position):
 
     color = judge_color(Judge_HSV, plate_img)
 
-    # bgr and rgb
-    # if color == Color.yellow:
-    #     color = Color.blue
-    # elif color == Color.blue:
-    #     color = Color.yellow
 
+    # write the plate of different color
     # uuid_str = uuid.uuid4().hex
     # tmp_file_name = 'tmpfile_%s.jpg' % uuid_str
-    #
     # plt.imsave("output/color/" + str(color.name) + '/' + tmp_file_name, cv2.cvtColor(plate_img, cv2.COLOR_RGB2BGR))
-    # print(color.name)
 
     return color
 
@@ -222,55 +198,106 @@ def judge_plate_color(image, position):
 Judge_HSV = HSV()
 
 
-def judge_vehicle_type(vehicle_class, vehicle_score, height, plate, p_color):
+# def judge_vehicle_type(vehicle_class, vehicle_score, height, plate, p_color):
+#     """
+#
+#     :param vehicle_class: value
+#     :param vehicle_score:
+#     :param height:
+#     :param plate:
+#     :return: new_class, new_scores
+#     """
+#     # value to class
+#     vehicle_class = VehicleClass(vehicle_class)
+#
+#     # rise the score of the rare class
+#     if vehicle_class in [VehicleClass.bus, VehicleClass.coach]:
+#         # vehicle_class = judge_bus_coach_by_plate(plate)
+#         # vehicle_score = plate_constant_score
+#         # vehicle_score += (1 - vehicle_score) / 3
+#         vehicle_score = 0.999
+#         vehicle_class = VehicleClass.coach
+#         pass
+#
+#     if vehicle_class != VehicleClass.coach and vehicle_class != VehicleClass.bus and height > height_of_heavy_truck:
+#         if height > height_of_container_truck:
+#             vehicle_class = VehicleClass.container_truck
+#             vehicle_score = height_container_truck_score
+#         else:
+#             vehicle_class = VehicleClass.heavy_truck
+#             vehicle_score = height_heavy_truck_score
+#
+#     if vehicle_class in [VehicleClass.taxi, VehicleClass.car, VehicleClass.van]:
+#         # vehicle_class = judge_taxi_by_plate(plate)
+#         # vehicle_score = plate_constant_score
+#         pass
+#
+#     if vehicle_class == VehicleClass.heavy_truck:
+#         if p_color == PlateColor.blue:
+#             vehicle_class = VehicleClass.van
+#         elif p_color == PlateColor.yellow:
+#             vehicle_class = VehicleClass.heavy_truck
+#     elif vehicle_class in [VehicleClass.coach, VehicleClass.car, VehicleClass.van]:
+#         if p_color == PlateColor.yellow and vehicle_class != VehicleClass.coach:
+#             vehicle_class = VehicleClass.coach
+#         elif plate:
+#             if plate[0] == '沪':
+#                 if plate[1].lower() == 'c':
+#                     vehicle_class = VehicleClass.car_hc
+#                 else:
+#                     vehicle_class = VehicleClass.car_h
+#             else:
+#                 vehicle_class = VehicleClass.car_nh
+#
+#     return vehicle_class.value, vehicle_score
+
+
+def judge_vehicle_type(vehicle_class_v, vehicle_score, height, plate, p_color):
     """
-    
+
     :param vehicle_class: value
-    :param vehicle_score: 
-    :param height: 
-    :param plate: 
+    :param vehicle_score:
+    :param height:
+    :param plate:
     :return: new_class, new_scores
     """
-    # value to class
-    vehicle_class = VehicleClass(vehicle_class)
 
-    # rise the score of the rare class
-    if vehicle_class in [VehicleClass.bus, VehicleClass.coach]:
+    # get the bus and coach
+    if vehicle_class_v  == VehicleClass.bus.value:
         # vehicle_class = judge_bus_coach_by_plate(plate)
         # vehicle_score = plate_constant_score
         # vehicle_score += (1 - vehicle_score) / 3
         vehicle_score = 0.999
-        vehicle_class = VehicleClass.coach
-        pass
-
-    if vehicle_class != VehicleClass.coach and vehicle_class != VehicleClass.bus and height > height_of_heavy_truck:
+        vehicle_class_v = VehicleClass.bus.value
+    # get the container truck by height
+    elif height > height_of_heavy_truck:
         if height > height_of_container_truck:
-            vehicle_class = VehicleClass.container_truck
+            vehicle_class_v = VehicleClass.container_truck.value
             vehicle_score = height_container_truck_score
         else:
-            vehicle_class = VehicleClass.heavy_truck
+            vehicle_class_v = VehicleClass.heavy_truck.value
             vehicle_score = height_heavy_truck_score
 
-    if vehicle_class in [VehicleClass.taxi, VehicleClass.car, VehicleClass.van]:
+    # get the taxi by plate
+    if vehicle_class_v == VehicleClass.car.value:
         # vehicle_class = judge_taxi_by_plate(plate)
         # vehicle_score = plate_constant_score
         pass
 
-    if vehicle_class == VehicleClass.heavy_truck:
-        if p_color == PlateColor.blue:
-            vehicle_class = VehicleClass.van
-        elif p_color == PlateColor.yellow:
-            vehicle_class = VehicleClass.heavy_truck
-    elif vehicle_class in [VehicleClass.coach, VehicleClass.car, VehicleClass.van]:
-        if p_color == PlateColor.yellow and vehicle_class != VehicleClass.coach:
-            vehicle_class = VehicleClass.coach
+    if vehicle_class_v == VehicleClass.heavy_truck.value:
+        if p_color == Color.blue:
+            vehicle_class_v = VehicleClass.van.value
+
+    elif vehicle_class_v in [VehicleClass.coach.value, VehicleClass.car.value]:
+        if p_color == Color.yellow:
+            vehicle_class_v = VehicleClass.coach.value
         elif plate:
             if plate[0] == '沪':
                 if plate[1].lower() == 'c':
-                    vehicle_class = VehicleClass.car_hc
+                    vehicle_class_v = VehicleClass.car_hc.value
                 else:
-                    vehicle_class = VehicleClass.car_h
+                    vehicle_class_v = VehicleClass.car_h.value
             else:
-                vehicle_class = VehicleClass.car_nh
+                vehicle_class_v = VehicleClass.car_nh.value
 
-    return vehicle_class.value, vehicle_score
+    return vehicle_class_v, vehicle_score
