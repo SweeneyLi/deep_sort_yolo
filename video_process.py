@@ -59,7 +59,8 @@ def get_rect(im, title='get_rect'):  # (a,b) = get_rect(im, title='get_rect')
 
 
 def readVideo(pathName):
-    print("Please input s to stop the video and choose the area with mouse!\nThen input q to the next step!")
+    # print("Please input s to stop the video and choose the area with mouse!\nThen input q to the next step!")
+    print("按s暂停视频，用鼠标选择区域，可重复选择\n按q结束")
     time.sleep(2)
 
     cap = cv2.VideoCapture(pathName)
@@ -91,10 +92,12 @@ def video_process(video_path, new_fps, speed_rate, new_position):
     width = bottom_right[0] - left_top[0]
     height = bottom_right[1] - left_top[1]
 
-    show_video = input("Do you need to show the video ? Please input y or n! (default is y)\n")
+    # show_video = input("Do you need to show the video ? Please input y or n! (default is y)\n")
+    show_video = input("需要预览视频吗？按y或n，默认是")
     show_video = False if show_video == 'n' else True
 
-    output_path = input("Please input the output path! (default means same as input)\n")
+    # output_path = input("Please input the output path! (default means same as input)\n")
+    output_path = input("请输入输出路径(包含文件名）！默认保存原视频目录下!\n")
     if not output_path:
         video_name = video_path.split("\\")[-1]
         output_path = video_path.replace(video_name, video_name.split(".")[0] + "_processed." + "mov")
@@ -104,15 +107,15 @@ def video_process(video_path, new_fps, speed_rate, new_position):
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_cnt = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    start_frame = (4 * 60 - 5)* fps
-    end_frame = (6 * 60 - 5)* fps + 1
+    start_frame = 39 * fps
+    # end_frame = (6 * 60 - 5)* fps + 1
 
     for i in trange(frame_cnt):
         ret, frame = cap.read()
         if i < start_frame:
             continue
-        if i > end_frame:
-            break
+        # if i > end_frame:
+        #     break
         if i % speed_rate == 0:
             frame = frame[left_top[1]:bottom_right[1], left_top[0]: bottom_right[0], :]
             out.write(frame)

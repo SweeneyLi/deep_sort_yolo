@@ -10,8 +10,6 @@ import numpy as np
 from keras import backend as K
 # from keras.models import load_model
 from tensorflow.keras.models import load_model
-# import tensorflow as tf
-# from PIL import Image, ImageFont, ImageDraw
 
 from yolo3.model import yolo_eval
 from yolo3.utils import letterbox_image
@@ -20,13 +18,8 @@ from yolo4.model import yolo_eval, yolo4_body
 from yolo4.utils import letterbox_image
 from keras.layers import Input
 
-import argparse
 from utils import *
 
-# ap = argparse.ArgumentParser()
-# ap.add_argument("-i", "--input", help="path to input video", default="./test_video/det_t1_video_00315_test.avi")
-# ap.add_argument("-c", "--class", help="name of class", default="person")
-# args = vars(ap.parse_args())
 
 model_dir = 'yolov3_640'
 # model_dir = 'yolov4_start'

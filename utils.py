@@ -3,6 +3,9 @@ import matplotlib.pyplot as plt
 from enum import Enum
 import cv2
 from parameter import *
+import cv2
+import numpy
+from PIL import Image, ImageDraw, ImageFont
 
 import uuid
 
@@ -23,16 +26,21 @@ class VehicleClass(Enum):
 
 
 
-class_dict = {'bus': 0, 'taxi': 1, 'coach': 2, 'car': 3, 'motor': 4, 'heavy_truck': 5, 'van': 6, 'container_truck': 7,
-              'car_hc': 8, 'car_h': 9, 'car_nh': 10}
+# class_dict = {'bus': 0, 'taxi': 1, 'coach': 2, 'car': 3, 'motor': 4, 'heavy_truck': 5, 'van': 6, 'container_truck': 7,
+#               'car_hc': 8, 'car_h': 9, 'car_nh': 10}
+
+class_dict = {'公交车': 0, '出租车': 1, '大客车': 2, '小客车': 3, '摩托车': 4, '大货车': 5, '小货车': 6, '集卡': 7,
+              '沪C': 8, '沪牌': 9, '非沪牌': 10}
 
 
 # reverse_class = {v: k for k, v in class_dict.items()}
 
 def print_leave_list(leave_list):
     res = []
-    for i in VehicleClass:
-        res.append(i.name + ":" + str(leave_list[i.value]))
+    # for i in VehicleClass:
+    #     res.append(i.name + ":" + str(leave_list[i.value]))
+    for i, v in class_dict.items():
+        res.append(i + ":" + str(leave_list[v]))
     return ", ".join(res)
 
 
@@ -301,3 +309,17 @@ def judge_vehicle_type(vehicle_class_v, vehicle_score, height, plate, p_color):
                 vehicle_class_v = VehicleClass.car_nh.value
 
     return vehicle_class_v, vehicle_score
+
+# draw chinese in img
+def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
+    if (isinstance(img, numpy.ndarray)):  # 判断是否OpenCV图片类型
+        img = Image.fromarray(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+    # 创建一个可以在给定图像上绘图的对象
+    draw = ImageDraw.Draw(img)
+    # 字体的格式
+    fontStyle = ImageFont.truetype(
+        "font/simsun.ttc", textSize, encoding="utf-8")
+    # 绘制文本
+    draw.text((left, top), text, textColor, font=fontStyle)
+    # 转换回OpenCV格式
+    return cv2.cvtColor(numpy.asarray(img), cv2.COLOR_RGB2BGR)

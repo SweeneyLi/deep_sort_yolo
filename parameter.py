@@ -11,12 +11,13 @@ plate_aero_height_ratio = 3 / 4         # the max height of the area which need 
 # yolo
 yolo_score = 0.5
 yolo_iou = 0.6
-max_iou_distance = 0.7
 model_image_size = (640, 640)
 # model_image_size = (960, 544)
+max_iou_distance = 0.7
+
 
 speedUp = True
-speedRate = 2
+speedRate = 1
 # deep sort
 n_init = max(3, int(10 / speedRate))
 max_age = max(10, int(20 / speedRate))
@@ -24,9 +25,7 @@ max_cosine_distance = 0.6 if speedUp else 0.8
 nn_budget = 20
 
 
-nms_max_overlap = 0.55  # no max depression
-
-max_area_ratio = 0.4
+max_area_ratio = 0.4 # no max depression
 
 # vehicle class
 min_plate_score = 0.3

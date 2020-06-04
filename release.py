@@ -5,7 +5,7 @@ from __future__ import division, print_function, absolute_import
 from timeit import time
 import warnings
 from PIL import Image
-from yolo import YOLO
+from yolo import YOLO, Yolo4
 from deep_sort import preprocessing
 from deep_sort import nn_matching
 from deep_sort.detection import Detection
@@ -28,7 +28,7 @@ backend.clear_session()
 # =====================================================================================================================
 
 
-def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
+def main(video_path, sum_file_path, goal):
     start = time.time()
 
     # https://blog.csdn.net/weixin_43249191/article/details/84072494
@@ -106,7 +106,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
         scores = np.array([d.v_score for d in detections])
-        indices = preprocessing.non_max_suppression(boxes, nms_max_overlap, max_area_ratio, scores)
+        indices = preprocessing.non_max_suppression(boxes, max_area_ratio, scores)
         detections = [detections[i] for i in indices]
 
         tracker.predict()
@@ -125,7 +125,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
                     direction = 1
 
             if direction != -1:
-                leave_list[direction][i.v_class.value] += 1
+                leave_list[direction][i.v_class] += 1
 
         if not interval_frame:
             interval_frame = Interval
@@ -155,20 +155,15 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     return leave_list, (seconds / duration)
 
 
-# video_list = [r"F:\Workplace\yolo_data\videos\IMG_2712.MOV"]
-# video_list = glob.glob(r"D:\WorkSpaces\videos\*.MOV")
-# video_list = [r"D:\WorkSpaces\videos\DJI_0005.MOV"]
-# video_list = [r"D:\WorkSpaces\videos\123.mp4"]
-# video_list = [r"D:\video\B6_2020_5_27_1.mp4", r"D:\video\B6_2020_5_27_2.mp4"]
-video_list = [r"D:\video\B6_2020_5_27_1.mp4"]
 
+# video_list = [r"D:\video\B6_2020_5_27_1.mp4", r"D:\video\B6_2020_5_27_2.mp4"]
+# video_list = [r"D:\video\B6_2020_5_27_1.mp4"]
+video_list = [r"D:\video\10m.mov"]
 
 def run():
     for video_path in video_list:
         goal = video_path.split(".")[0].split("\\")[-1]
         print(goal)
-        output_path = "output_csv/r_%s.mov" % goal
-        vehicle_file = "output_csv/vehicle_%s.csv" % goal
         sum_file = "output_csv/num_%s.csv" % goal
 
         # lp = LineProfiler()
@@ -177,7 +172,7 @@ def run():
         # lp_wrapper(video_path, output_path, vehicle_file, sum_file, goal)
         # lp.print_stats()
 
-        main(video_path, output_path, vehicle_file, sum_file, goal)
+        main(video_path, sum_file, goal)
 
     # ===================================================================
     # parameter_file = open("output/para/parameter.csv", 'w', encoding='gbk')
@@ -227,5 +222,6 @@ def run():
     # parameter_file.close()
 
 
-yolo = YOLO()
+# yolo = YOLO()
+yolo = Yolo4()
 run()
