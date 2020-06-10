@@ -30,19 +30,29 @@ class VehicleClass(Enum):
 #               'car_hc': 8, 'car_h': 9, 'car_nh': 10}
 
 class_dict = {'公交车': 0, '出租车': 1, '大客车': 2, '小客车': 3, '摩托车': 4, '大货车': 5, '小货车': 6, '集卡': 7,
-              '沪C': 8, '沪牌': 9, '非沪牌': 10}
+              '非沪牌': 8, '沪牌': 9, '沪C': 10}
 
 
 # reverse_class = {v: k for k, v in class_dict.items()}
 
+# def print_leave_list(leave_list):
+#     res = []
+#     # for i in VehicleClass:
+#     #     res.append(i.name + ":" + str(leave_list[i.value]))
+#     for i, v in class_dict.items():
+#         res.append(i + ":" + str(leave_list[v]))
+#     return ", ".join(res)
+
 def print_leave_list(leave_list):
     res = []
-    # for i in VehicleClass:
-    #     res.append(i.name + ":" + str(leave_list[i.value]))
-    for i, v in class_dict.items():
-        res.append(i + ":" + str(leave_list[v]))
+    new_list = leave_list.copy()
+    class_dict2 = {'公交车': 0,  '摩托车': 4,'大货车': 5, '小货车': 6, '集卡': 7,
+                  '非沪牌': 8, '沪牌': 9, '沪C': 10}
+    new_list[0] += new_list[2]
+    new_list[9] += new_list[3]
+    for i, v in class_dict2.items():
+        res.append(i + ":" + str(new_list[v]))
     return ", ".join(res)
-
 
 # def class2Id(v_class):
 #     return class_dict[v_class]

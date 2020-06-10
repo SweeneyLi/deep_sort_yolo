@@ -19,6 +19,7 @@ max_iou_distance = 0.7
 speedUp = True
 speedRate = 1
 # deep sort
+# n_init = max(3, int(10 / speedRate))
 n_init = max(3, int(10 / speedRate))
 max_age = max(10, int(20 / speedRate))
 max_cosine_distance = 0.6 if speedUp else 0.8

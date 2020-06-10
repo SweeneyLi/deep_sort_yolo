@@ -164,8 +164,10 @@ class Track:
 
         self.hits += 1
         self.time_since_update = 0
-        if self.state == TrackState.Tentative and self.hits >= self._n_init:
-            self.state = TrackState.Confirmed
+        if self.state == TrackState.Tentative:
+            # sepcial setting for the motor
+            if self.hits >= self._n_init or (self.v_class == VehicleClass.motor.value and self.hits >= self._n_init / 4):
+                self.state = TrackState.Confirmed
 
         if self.v_class in car_class and detection.v_class in car_class:
             if detection.v_class >= self.v_class:

@@ -314,6 +314,8 @@ class Yolo4(object):
 
             if c not in [2, 3, 5, 7]:
                 continue
+            # if c not in [2, 5, 7]:
+            #     continue
 
             c = v4_change_list[c]
 

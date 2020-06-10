@@ -67,7 +67,7 @@ def readVideo(pathName):
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     width, height = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    left_top, bottom_right = (0, 0), (width, height)
+    left_top, bottom_right = (0, 150), (width, height)
     frame_index = 0
     while (cap.isOpened()):
         ret, frame = cap.read()
@@ -77,7 +77,7 @@ def readVideo(pathName):
             (left_top, bottom_right) = get_rect(frame, title='get_rect')
 
         cv2.namedWindow("Video", 0)
-        cv2.resizeWindow('Video', 960, 540)
+        # cv2.resizeWindow('Video', 960, 540)
         cv2.imshow('frame', frame[left_top[1]:bottom_right[1], left_top[0]: bottom_right[0], :])
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -107,13 +107,13 @@ def video_process(video_path, new_fps, speed_rate, new_position):
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_cnt = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
-    start_frame = 39 * fps
-    # end_frame = (6 * 60 - 5)* fps + 1
+    # start_frame = 55 * fps
+    # end_frame = (55 + 5 * 60)* fps
 
     for i in trange(frame_cnt):
         ret, frame = cap.read()
-        if i < start_frame:
-            continue
+        # if i < start_frame:
+        #     continue
         # if i > end_frame:
         #     break
         if i % speed_rate == 0:
@@ -129,10 +129,10 @@ def video_process(video_path, new_fps, speed_rate, new_position):
     print("The video is processed!\n The path is %s." % output_path)
 
 
-# video_path = r"D:\video\B6_2020_5_27_1.mp4"
+video_path = r"D:\WorkSpaces\videos\DJI_0005.MOV"
 # video_path = r"D:\WorkSpaces\deep_sort_yolov3\output\past\r_DJI_0010.mov"
 # 中文
-video_path = input("请输入视频路径!\n")
+# video_path = input("请输入视频路径!\n")
 import os
 while not os.path.exists(video_path):
     video_path = input("该路径错误，请重新输入!\n")
@@ -144,15 +144,18 @@ try:
     speed_rate = 3 if speed_rate == '' else int(speed_rate)
     new_fps = input("请输入新的fps，默认为原fps/加速比（直接回车）\n")
     new_fps = fps / speed_rate if new_fps == '' else int(new_fps)
+
+    video_process(video_path, new_fps, speed_rate, (left_top, bottom_right))
 except Exception as e:
     print("输入格式错误!")
     print(e)
 
-if speed_rate != 1 or fps != new_fps:
-    video_process(video_path, new_fps, speed_rate, (left_top, bottom_right))
-    print("转换完成!")
-else:
-    print("无需转换!")
+
+# if speed_rate != 1 or fps != new_fps:
+#     video_process(video_path, new_fps, speed_rate, (left_top, bottom_right))
+#     print("转换完成!")
+# else:
+#     print("无需转换!")
 
 # English
 # video_path = input("Please input your video path!\n")

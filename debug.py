@@ -234,19 +234,30 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
             # cv2.rectangle(frame, (0, 0), (frame.shape[1], 200), (0, 0, 0), cv2.FILLED)
 
-            cv2.putText(frame, "frame:%d" % frame_index, (int(0), int(30)), 0, 5e-3 * 200, (0, 255, 0), 4)
-            cv2.putText(frame, "FPS: %f" % (fps), (int(0), int(80)), 0, 5e-3 * 200, (0, 255, 0), 4)
-            cv2.putText(frame, "nums: %d" % (current_nums), (int(0), int(120)), 0, 5e-3 * 200, (0, 255, 0), 4)
+            # cv2.putText(frame, "frame:%d" % frame_index, (int(0), int(30)), 0, 5e-3 * 200, (0, 255, 0), 4)
+            # cv2.putText(frame, "FPS: %f" % (fps), (int(0), int(80)), 0, 5e-3 * 200, (0, 255, 0), 4)
+            # cv2.putText(frame, "nums: %d" % (current_nums), (int(0), int(120)), 0, 5e-3 * 200, (0, 255, 0), 4)
+
+            # cv2.putText(frame, "frame:%d" % frame_index, (int(0), int(30)), 0, 5e-3 * 200, (0, 255, 0), 4)
+            # cv2.putText(frame, "FPS: %f" % (fps), (int(0), int(80)), 0, 5e-3 * 200, (0, 255, 0), 4)
+            # cv2.putText(frame, "nums: %d" % (current_nums), (int(0), int(120)), 0, 5e-3 * 200, (0, 255, 0), 4)
+            frame = cv2ImgAddText(frame, "帧数:%d" % frame_index, 0, 0, (0, 255, 255), 40)
+            frame = cv2ImgAddText(frame, "每秒帧数: %f" % (fps), 0, 40, (0, 255, 255), 40)
+            frame = cv2ImgAddText(frame, "车辆数目: %d" % (current_nums), 0, 80, (0, 255, 255), 40)
+
 
             frame = np.concatenate((np.zeros((title_height, Width, 3), dtype="uint8"), frame))
 
-            cv2.putText(frame, "in:" + str(sum(leave_list[0])), (int(0), int(30)), 0, 5e-3 * 200, (255, 100, 255), 3)
-            cv2.putText(frame, "out:" + str(sum(leave_list[1])), (int(0), int(80)), 0, 5e-3 * 200, (255, 100, 255), 3)
-            # cv2.putText(frame, print_leave_list(leave_list[0]), (int(300), int(80)), 0, 5e-3 * 140, (255, 255, 255), 2)
-            # cv2.putText(frame, print_leave_list(leave_list[1]), (int(300), int(180)), 0, 5e-3 * 140, (255, 255, 255), 2)
+            # cv2.putText(frame, "in:" + str(sum(leave_list[0])), (int(0), int(30)), 0, 5e-3 * 200, (255, 100, 255), 3)
+            # cv2.putText(frame, "out:" + str(sum(leave_list[1])), (int(0), int(60)), 0, 5e-3 * 200, (255, 100, 255), 3)
+            frame = cv2ImgAddText(frame, "总计:" + str(sum(leave_list[0])), 0, 0, (255, 155, 255), 50)
+            # frame = cv2ImgAddText(frame, "出:" + str(sum(leave_list[1])), 0, 50, (255, 155, 255), 50)
 
-            frame = cv2ImgAddText(frame, print_leave_list(leave_list[0]), 200, 0, (255, 255, 255), 25)
-            frame = cv2ImgAddText(frame, print_leave_list(leave_list[1]), 200, 50, (255, 255, 255), 25)
+            frame = cv2ImgAddText(frame, print_leave_list(leave_list[0]), 200, 50, (255, 255, 255), 25)
+            # frame = cv2ImgAddText(frame, print_leave_list(leave_list[1]), 200, 70, (255, 255, 255), 25)
+
+            # video info
+            frame = cv2ImgAddText(frame, "市区-徐家汇天钥桥路路口-东西向-限速60km/h", 200, 0, (255, 255, 0), 30)
 
             # show the instant result
             if show_real_time:
@@ -303,7 +314,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 # video_list = [r"D:\WorkSpaces\videos\123.mp4"]
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4",r"D:\video\B6_2020_5_27_2.mp4"]
 # video_list = [r"D:\video\B6_2020_6_1_1.mp4"]
-video_list = [r"D:\video\10m.mov"]
+video_list = [r"D:\video\5m-q.mov"]
 
 def run():
     for video_path in video_list:

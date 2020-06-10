@@ -158,7 +158,7 @@ def main(video_path, sum_file_path, goal):
 
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4", r"D:\video\B6_2020_5_27_2.mp4"]
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4"]
-video_list = [r"D:\video\10m.mov"]
+video_list = [r"D:\video\5m.mov"]
 
 def run():
     for video_path in video_list:
