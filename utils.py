@@ -24,7 +24,12 @@ class VehicleClass(Enum):
     car_h = 9
     car_hc = 10
 
-
+class Color(Enum):
+    blue = 0
+    yellow = 1
+    green = 2
+    no_plate = 3
+    no_color = 4
 
 # class_dict = {'bus': 0, 'taxi': 1, 'coach': 2, 'car': 3, 'motor': 4, 'heavy_truck': 5, 'van': 6, 'container_truck': 7,
 #               'car_hc': 8, 'car_h': 9, 'car_nh': 10}
@@ -46,10 +51,9 @@ class_dict = {'公交车': 0, '出租车': 1, '大客车': 2, '小客车': 3, '�
 def print_leave_list(leave_list):
     res = []
     new_list = leave_list.copy()
-    class_dict2 = {'公交车': 0,  '摩托车': 4,'大货车': 5, '小货车': 6, '集卡': 7,
+    class_dict2 = {'公交车': 0,  '小客车':3, '摩托车': 4,'大货车': 5, '小货车': 6, '集卡': 7,
                   '非沪牌': 8, '沪牌': 9, '沪C': 10}
     new_list[0] += new_list[2]
-    new_list[9] += new_list[3]
     for i, v in class_dict2.items():
         res.append(i + ":" + str(new_list[v]))
     return ", ".join(res)
@@ -86,10 +90,10 @@ def detect_class_by_plate(image, min_plate_score=0.3):
         plate_info = HyperLPR_plate_recognition(image)
     except Exception as e:
         print(e)
-        return None, None, 0
+        return None, Color.no_plate.value, 0
 
     if len(plate_info) == 0 or plate_info[0][1] < min_plate_score:
-        return None, None, 0
+        return None, Color.no_plate.value, 0
 
     p_color = judge_plate_color(image, plate_info[0][2])
 
@@ -102,12 +106,7 @@ def detect_class_by_plate(image, min_plate_score=0.3):
     return plate_info[0][0], p_color, plate_info[0][1]
 
 
-class Color(Enum):
-    blue = 0
-    yellow = 1
-    green = 2
-    no_plate = 3
-    no_color = 4
+
 
 
 def plt_show0(img):
@@ -210,7 +209,7 @@ def judge_plate_color(image, position):
     # tmp_file_name = 'tmpfile_%s.jpg' % uuid_str
     # plt.imsave("output/color/" + str(color.name) + '/' + tmp_file_name, cv2.cvtColor(plate_img, cv2.COLOR_RGB2BGR))
 
-    return color
+    return color.value
 
 
 Judge_HSV = HSV()
@@ -282,11 +281,14 @@ def judge_vehicle_type(vehicle_class_v, vehicle_score, height, plate, p_color):
 
     # get the bus and coach
     if vehicle_class_v  == VehicleClass.bus.value:
+        if not p_color == Color.yellow.value:
+            vehicle_class_v = VehicleClass.van.value
         # vehicle_class = judge_bus_coach_by_plate(plate)
         # vehicle_score = plate_constant_score
         # vehicle_score += (1 - vehicle_score) / 3
-        vehicle_score = 0.999
+        # vehicle_score = 0.999
         vehicle_class_v = VehicleClass.bus.value
+
     # get the container truck by height
     elif height > height_of_heavy_truck:
         if height > height_of_container_truck:
@@ -302,12 +304,12 @@ def judge_vehicle_type(vehicle_class_v, vehicle_score, height, plate, p_color):
         # vehicle_score = plate_constant_score
         pass
 
-    if vehicle_class_v == VehicleClass.heavy_truck.value:
-        if p_color == Color.blue:
-            vehicle_class_v = VehicleClass.van.value
+    if vehicle_class_v == VehicleClass.van.value:
+        if p_color == Color.yellow.value:
+            vehicle_class_v = VehicleClass.heavy_truck.value
 
     elif vehicle_class_v in [VehicleClass.coach.value, VehicleClass.car.value]:
-        if p_color == Color.yellow:
+        if p_color == Color.yellow.value:
             vehicle_class_v = VehicleClass.coach.value
         elif plate:
             if plate[0] == '沪':

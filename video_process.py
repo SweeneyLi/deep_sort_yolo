@@ -129,8 +129,9 @@ def video_process(video_path, new_fps, speed_rate, new_position):
     print("The video is processed!\n The path is %s." % output_path)
 
 
-video_path = r"D:\WorkSpaces\videos\DJI_0005.MOV"
+# video_path = r"D:\WorkSpaces\videos\DJI_0005.MOV"
 # video_path = r"D:\WorkSpaces\deep_sort_yolov3\output\past\r_DJI_0010.mov"
+video_path = r"D:\video\5m-q.mov"
 # 中文
 # video_path = input("请输入视频路径!\n")
 import os

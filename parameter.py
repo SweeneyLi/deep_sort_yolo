@@ -22,7 +22,7 @@ speedRate = 1
 # n_init = max(3, int(10 / speedRate))
 n_init = max(3, int(10 / speedRate))
 max_age = max(10, int(20 / speedRate))
-max_cosine_distance = 0.6 if speedUp else 0.8
+max_cosine_distance = 0.65 if speedUp else 0.8
 nn_budget = 20
 
 

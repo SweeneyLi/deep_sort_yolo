@@ -1,5 +1,5 @@
 # vim: expandtab:ts=4:sw=4
-from utils import VehicleClass
+from utils import VehicleClass, Color
 from parameter import nn_budget
 
 car_class = [VehicleClass.car.value, VehicleClass.car_h.value, VehicleClass.car_nh.value, VehicleClass.car_hc.value,
@@ -69,7 +69,7 @@ class Track:
 
     """
 
-    def __init__(self, mean, covariance, track_id, n_init, max_age, v_class, v_score, plate, p_score,
+    def __init__(self, mean, covariance, track_id, n_init, max_age, v_class, v_score, plate, p_score, p_color,
                  feature=None):
         self.mean = mean
         self.covariance = covariance
@@ -93,6 +93,7 @@ class Track:
 
         self.plate = plate
         self.p_score = p_score
+        self.p_color = p_color
 
     def to_tlwh(self):
         """Get current position in bounding box format `(top left x, top left y,
@@ -166,13 +167,14 @@ class Track:
         self.time_since_update = 0
         if self.state == TrackState.Tentative:
             # sepcial setting for the motor
-            if self.hits >= self._n_init or (self.v_class == VehicleClass.motor.value and self.hits >= self._n_init / 4):
+            if self.hits >= self._n_init or (
+                    self.v_class == VehicleClass.motor.value and self.hits >= self._n_init / 4):
                 self.state = TrackState.Confirmed
 
         if self.v_class in car_class and detection.v_class in car_class:
             if detection.v_class >= self.v_class:
                 self.v_class = detection.v_class
-                self.v_score = detection.v_score
+                self.v_score = max(detection.v_score, self.v_score)
         elif detection.v_score >= self.v_score:
             self.v_score = detection.v_score
             self.v_class = detection.v_class
@@ -180,6 +182,14 @@ class Track:
         if detection.p_score >= self.p_score:
             self.plate = detection.plate
             self.p_score = detection.p_score
+
+        if not (self.p_color < Color.no_plate.value and detection.p_color >= Color.no_plate.value):
+            self.p_color = detection.p_color
+
+        if self.v_class == VehicleClass.van.value and self.p_color == Color.yellow.value:
+            self.v_class = VehicleClass.heavy_truck.value
+        if self.v_class == VehicleClass.coach.value and self.p_color == Color.blue.value:
+            self.v_class = VehicleClass.car.value
 
     def mark_missed(self):
         """Mark this track as missed (no association at the current time step).

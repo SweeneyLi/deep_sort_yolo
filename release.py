@@ -94,15 +94,15 @@ def main(video_path, sum_file_path, goal):
         # boxs, class_names, class_scores, plate_list, p_score_list = lp_wrapper(image)
         # lp.print_stats()
 
-        boxs, class_names, class_scores, plate_list, p_score_list = yolo.detect_image(image)
+        boxs, class_names, class_scores, plate_list, p_score_list, p_color_list = yolo.detect_image(image)
 
         # if len(boxs) < 3:
         #     skip_frame = 3 - len(boxs)
 
         features = encoder(frame, boxs)
-        detections = [Detection(bbox, feature, v_class, v_score, plate, p_score) for
-                      bbox, feature, v_class, v_score, plate, p_score in
-                      zip(boxs, features, class_names, class_scores, plate_list, p_score_list)]
+        detections = [Detection(bbox, feature, v_class, v_score, plate, p_score, p_color) for
+                      bbox, feature, v_class, v_score, plate, p_score, p_color in
+                      zip(boxs, features, class_names, class_scores, plate_list, p_score_list, p_color_list)]
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
         scores = np.array([d.v_score for d in detections])
@@ -142,7 +142,7 @@ def main(video_path, sum_file_path, goal):
     h, m = divmod(m, 60)
 
     sum_file.write(goal + " run need: %02d:%02d:%02d\n" % (h, m, s))
-    sum_file.write("1:%02d" % (seconds / duration))
+    sum_file.write("1/%f" % (seconds / duration))
     sum_file.close()
 
     print(goal + " " + str(duration) + "s - Finish!")
@@ -158,10 +158,13 @@ def main(video_path, sum_file_path, goal):
 
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4", r"D:\video\B6_2020_5_27_2.mp4"]
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4"]
-video_list = [r"D:\video\5m.mov"]
+video_list = [r"D:\video\5-30.mov"]
+# video_list = [r"D:\WorkSpaces\videos\16s.mp4"]
 
 def run():
     for video_path in video_list:
+        if not os.path.exists(video_path):
+            raise Exception("the path '%s' is wrong" % video_path)
         goal = video_path.split(".")[0].split("\\")[-1]
         print(goal)
         sum_file = "output_csv/num_%s.csv" % goal

@@ -31,7 +31,6 @@ backend.clear_session()
 writeVideo_flag = True
 show_real_time = True
 
-
 # start_frame = None
 # end_frame = None
 
@@ -52,7 +51,6 @@ COLORS = np.random.randint(0, 255, size=(200, 3), dtype="uint8")
 
 Width = None
 Height = None
-title_height = 100
 
 
 def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
@@ -66,6 +64,9 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     Width, Height = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     g_env['input']['width'] = Width
     g_env['input']['height'] = Height
+
+    FrameNumber = cap.get(7)
+    duration = FrameNumber / fps
 
     # Width, Height = Height, Width
     print("fps: %s, width: %s, height: %s" % (fps, Width, Height))
@@ -94,7 +95,6 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
     metric = nn_matching.NearestNeighborDistanceMetric("cosine", max_cosine_distance, nn_budget)
     tracker = Tracker(metric, max_iou_distance=max_iou_distance, max_age=max_age, n_init=n_init)
-
 
     time2 = time.time()
     print("load need: " + str(time2 - start) + 's')
@@ -129,7 +129,6 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         #     skip_frame -= 1
         #     continue
 
-
         image = Image.fromarray(frame)
         # image = Image.fromarray(frame[..., ::-1])  # bgr to rgb
 
@@ -142,16 +141,16 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         # lp.print_stats()
 
         # boxs, class_names, class_scores, plate_list, p_score_list = yolo.detect_image2(frame)
-        boxs, class_names, class_scores, plate_list, p_score_list = yolo.detect_image(image)
+        boxs, class_names, class_scores, plate_list, p_score_list, p_color_list = yolo.detect_image(image)
 
         current_nums = len(boxs)
         # if current_nums < 3:
         #     skip_frame = 1
 
         features = encoder(frame, boxs)
-        detections = [Detection(bbox, feature, v_class, v_score, plate, p_score) for
-                      bbox, feature, v_class, v_score, plate, p_score in
-                      zip(boxs, features, class_names, class_scores, plate_list, p_score_list)]
+        detections = [Detection(bbox, feature, v_class, v_score, plate, p_score, p_color) for
+                      bbox, feature, v_class, v_score, plate, p_score, p_color in
+                      zip(boxs, features, class_names, class_scores, plate_list, p_score_list, p_color_list)]
         # Run non-maxima suppression.
         boxes = np.array([d.tlwh for d in detections])
         scores = np.array([d.v_score for d in detections])
@@ -186,7 +185,8 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
                 position = [w, h, x, y, x + w, y + h]
 
                 csv_writer.writerow(
-                    [frame_index, direction, i.track_id, VehicleClass(i.v_class).name, i.v_score, i.plate, i.p_score, len(path)]
+                    [frame_index, direction, i.track_id, VehicleClass(i.v_class).name, i.v_score, i.plate, i.p_score,
+                     len(path)]
                     + position)
 
         if writeVideo_flag:
@@ -210,10 +210,10 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
                 cv2.rectangle(frame, (int(bbox[0]), int(bbox[1]) - 50), (int(bbox[2]), int(bbox[1])), (color),
                               cv2.FILLED)
-                cv2.putText(frame,
-                            str(track.track_id) + "-" + str(VehicleClass(track.v_class).name) + '-' + str(round(track.v_score, 2)),
+                cv2.putText(frame, "{}-{}-{}-{}".format(track.track_id, VehicleClass(track.v_class).name,
+                                                        round(track.v_score, 2), track.p_color),
                             (int(bbox[0]), int(bbox[1])), 0,
-                            5e-3 * 300, (255, 255, 255), 3)
+                            1.2, (255, 255, 255), 3)
 
                 cv2.rectangle(frame, (int(bbox[0]), int(bbox[1])), (int(bbox[2]), int(bbox[1]) + 50), (0, 0, 0),
                               cv2.FILLED)
@@ -241,23 +241,33 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
             # cv2.putText(frame, "frame:%d" % frame_index, (int(0), int(30)), 0, 5e-3 * 200, (0, 255, 0), 4)
             # cv2.putText(frame, "FPS: %f" % (fps), (int(0), int(80)), 0, 5e-3 * 200, (0, 255, 0), 4)
             # cv2.putText(frame, "nums: %d" % (current_nums), (int(0), int(120)), 0, 5e-3 * 200, (0, 255, 0), 4)
-            frame = cv2ImgAddText(frame, "帧数:%d" % frame_index, 0, 0, (0, 255, 255), 40)
-            frame = cv2ImgAddText(frame, "每秒帧数: %f" % (fps), 0, 40, (0, 255, 255), 40)
-            frame = cv2ImgAddText(frame, "车辆数目: %d" % (current_nums), 0, 80, (0, 255, 255), 40)
 
+            frame_info_size = 40 if video_small else 80
+            vehicle_info_size = 30 if video_small else 60
+
+            now_fps = 1. / (time.time() - t1)
+            frame = cv2ImgAddText(frame, "帧数:%d" % frame_index, 0, 0, (0, 255, 255), frame_info_size)
+            frame = cv2ImgAddText(frame, "每秒帧数: %f" % (now_fps), 0, frame_info_size, (0, 255, 255), frame_info_size)
+            frame = cv2ImgAddText(frame, "车辆数目: %d" % (current_nums), 0, frame_info_size + frame_info_size,
+                                  (0, 255, 255), frame_info_size)
 
             frame = np.concatenate((np.zeros((title_height, Width, 3), dtype="uint8"), frame))
 
+            # video info
+            frame = cv2ImgAddText(frame, "市区-徐家汇天钥桥路路口-东西向-限速60km/h", frame_info_size * 5, 0, (255, 255, 0),
+                                  frame_info_size)
+
             # cv2.putText(frame, "in:" + str(sum(leave_list[0])), (int(0), int(30)), 0, 5e-3 * 200, (255, 100, 255), 3)
             # cv2.putText(frame, "out:" + str(sum(leave_list[1])), (int(0), int(60)), 0, 5e-3 * 200, (255, 100, 255), 3)
-            frame = cv2ImgAddText(frame, "总计:" + str(sum(leave_list[0])), 0, 0, (255, 155, 255), 50)
-            # frame = cv2ImgAddText(frame, "出:" + str(sum(leave_list[1])), 0, 50, (255, 155, 255), 50)
 
-            frame = cv2ImgAddText(frame, print_leave_list(leave_list[0]), 200, 50, (255, 255, 255), 25)
-            # frame = cv2ImgAddText(frame, print_leave_list(leave_list[1]), 200, 70, (255, 255, 255), 25)
+            frame = cv2ImgAddText(frame, "进:" + str(sum(leave_list[0])), 0, 0, (255, 155, 255), frame_info_size)
+            frame = cv2ImgAddText(frame, "出:" + str(sum(leave_list[1])), 0, frame_info_size, (255, 155, 255),
+                                  frame_info_size)
 
-            # video info
-            frame = cv2ImgAddText(frame, "市区-徐家汇天钥桥路路口-东西向-限速60km/h", 200, 0, (255, 255, 0), 30)
+            frame = cv2ImgAddText(frame, print_leave_list(leave_list[0]), frame_info_size * 5, frame_info_size,
+                                  (255, 255, 255), vehicle_info_size)
+            frame = cv2ImgAddText(frame, print_leave_list(leave_list[1]), frame_info_size * 5,
+                                  frame_info_size + vehicle_info_size, (255, 255, 255), vehicle_info_size)
 
             # show the instant result
             if show_real_time:
@@ -269,22 +279,24 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
             # save a frame
             out.write(frame)
 
-            fps = (fps + (1. / (time.time() - t1))) / 2
-
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
         # test
         if not interval_frame:
-            print("1s cost:" + str((time.time() - start) / 10))
+            print("1s cost:" + str((time.time() - start) / 30))
             start = time.time()
-            print(frame_index / fps, "in:", (leave_list[0]), "out:", (leave_list[1]))
+            print(int(frame_index / fps), "in:", (leave_list[0]), "out:", (leave_list[1]))
             csv_writer2.writerow(leave_list[0] + leave_list[1])
             interval_frame = Interval
 
         # test
         if os.path.exists("output/stop.txt"):
             break
+
+    seconds = time.time() - time2
+    m, s = divmod(seconds, 60)
+    h, m = divmod(m, 60)
 
     csv_writer2.writerow(leave_list[0] + leave_list[1])
 
@@ -293,12 +305,12 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     print("in:", (leave_list[0]), "out:", (leave_list[1]))
     print("all: in: %d, out:%d" % (sum(leave_list[0]), sum(leave_list[1])))
     time_need = round((time.time() - time2) / 60, 2)
-    print("run need: " + str(time_need) + 'min\n', str((time.time() - time2)) + 's\n',
-          "1:" + str((time.time() - time2) * fps / frame_index))
+    print("run need: %02d:%02d:%02d\n" % (h, m, s),
+          "1:" + str(seconds / duration))
 
     vehicle_file.write('\n')
     sum_file.write(
-        goal + " run need: " + str(time_need) + 'm\n' + "1: " + str((time.time() - time2) * fps / frame_index))
+        goal + "run need: %02d:%02d:%02d\n" % (h, m, s) + "\n1/ " + str(seconds / duration))
     cap.release()
     if writeVideo_flag:
         out.release()
@@ -308,19 +320,27 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
     return leave_list, time_need
 
+
 # video_list = [r"F:\Workplace\yolo_data\videos\IMG_2712.MOV"]
 # video_list = glob.glob(r"D:\WorkSpaces\videos\*.MOV")
 # video_list = [r"D:\WorkSpaces\videos\DJI_0005.MOV"]
 # video_list = [r"D:\WorkSpaces\videos\123.mp4"]
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4",r"D:\video\B6_2020_5_27_2.mp4"]
 # video_list = [r"D:\video\B6_2020_6_1_1.mp4"]
-video_list = [r"D:\video\5m-q.mov"]
+video_list = [r"D:\video\5m-z.mov"]
+
+video_small = True
+
+title_height = 100 if video_small else 300
+
 
 def run():
     for video_path in video_list:
         goal = video_path.split(".")[0].split("\\")[-1]
         print(goal)
         output_path = "output/r_%s.mov" % goal
+        while os.path.exists(output_path):
+            output_path = output_path.replace(".mov", "_2.mov")
         vehicle_file = "output/vehicle_%s.csv" % goal
         sum_file = "output/num_%s.csv" % goal
 

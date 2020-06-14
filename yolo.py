@@ -186,6 +186,7 @@ class YOLO(object):
         return_scores = []
         return_plate = []
         return_p_scores = []
+        return_p_colors = []
 
         for i, c in reversed(list(enumerate(out_classes))):
 
@@ -213,11 +214,12 @@ class YOLO(object):
             c, out_scores[i] = judge_vehicle_type(c, out_scores[i], h, plate, p_color)
             return_plate.append(plate)
             return_p_scores.append(p_score)
+            return_p_colors.append(p_color)
 
             return_class_name.append(VehicleClass(c))
             return_scores.append(out_scores[i])
 
-        return return_boxs, return_class_name, return_scores, return_plate, return_p_scores
+        return return_boxs, return_class_name, return_scores, return_plate, return_p_scores, return_p_colors
 
     def close_session(self):
         self.sess.close()
@@ -309,6 +311,7 @@ class Yolo4(object):
         return_scores = []
         return_plate = []
         return_p_scores = []
+        return_p_colors = []
 
         for i, c in reversed(list(enumerate(out_classes))):
 
@@ -345,10 +348,29 @@ class Yolo4(object):
             c, out_scores[i] = judge_vehicle_type(c, out_scores[i], h, plate, p_color)
             return_plate.append(plate)
             return_p_scores.append(p_score)
+            return_p_colors.append(p_color)
 
             return_class_name.append(c)
             return_scores.append(out_scores[i])
 
-        return return_boxs, return_class_name, return_scores, return_plate, return_p_scores
+        return return_boxs, return_class_name, return_scores, return_plate, return_p_scores, return_p_colors
 
-v4_change_list = [0, 0, 3, 4, 0, 0, 0, 5]
+v4_change_list = [0, 0, 3, 4, 0, 0, 0, 6]
+
+# bus
+# taxi
+# coach
+# car
+# motor
+# heavy_truck
+# van
+# container_truck
+
+# person
+# bicycle
+# car
+# motorbike
+# aeroplane
+# bus
+# train
+# truck

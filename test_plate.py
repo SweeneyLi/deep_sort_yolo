@@ -5,6 +5,7 @@ import cv2
 import time
 from line_profiler import LineProfiler
 
+
 # img_list = glob.glob(r"D:\WorkSpaces\deep_sort_yolov3\output\plate\*.jpg")
 # img_list = glob.glob(r"D:\WorkSpaces\deep_sort_yolov3\output\color\*.jpg")
 img_list = glob.glob(r"C:\Users\DELL\Desktop\*.png")
