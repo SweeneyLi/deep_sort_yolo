@@ -175,13 +175,16 @@ class Track:
             if detection.v_class >= self.v_class:
                 self.v_class = detection.v_class
                 self.v_score = max(detection.v_score, self.v_score)
+                self.plate = detection.plate
+                self.p_score = detection.p_score
+
         elif detection.v_score >= self.v_score:
             self.v_score = detection.v_score
             self.v_class = detection.v_class
 
-        if detection.p_score >= self.p_score:
-            self.plate = detection.plate
-            self.p_score = detection.p_score
+            if detection.p_score >= self.p_score:
+                self.plate = detection.plate
+                self.p_score = detection.p_score
 
         if not (self.p_color < Color.no_plate.value and detection.p_color >= Color.no_plate.value):
             self.p_color = detection.p_color

@@ -87,7 +87,10 @@ def readVideo(pathName):
     return (left_top, bottom_right), fps
 
 
-def video_process(video_path, new_fps, speed_rate, new_position):
+def video_process(video_path, new_fps, speed_rate, new_position, fill_position=None):
+    fill_position = np.array([
+        [[1550, 0], [1882, 0], [1880, 400]]
+    ])
     (left_top, bottom_right) = new_position
     width = bottom_right[0] - left_top[0]
     height = bottom_right[1] - left_top[1]
@@ -107,17 +110,23 @@ def video_process(video_path, new_fps, speed_rate, new_position):
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_cnt = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
+    start_frame = 0
+    end_frame = None
     # start_frame = 55 * fps
     # end_frame = (55 + 5 * 60)* fps
 
     for i in trange(frame_cnt):
         ret, frame = cap.read()
-        # if i < start_frame:
-        #     continue
-        # if i > end_frame:
-        #     break
+        if i < start_frame:
+            continue
+        if not end_frame is None and i > end_frame:
+            break
         if i % speed_rate == 0:
             frame = frame[left_top[1]:bottom_right[1], left_top[0]: bottom_right[0], :]
+
+            if not fill_position is None:
+                frame = cv2.fillPoly(frame, fill_position, (0,0,0))
+
             out.write(frame)
             if show_video:
                 cv2.imshow('frame', frame)
@@ -131,7 +140,7 @@ def video_process(video_path, new_fps, speed_rate, new_position):
 
 # video_path = r"D:\WorkSpaces\videos\DJI_0005.MOV"
 # video_path = r"D:\WorkSpaces\deep_sort_yolov3\output\past\r_DJI_0010.mov"
-video_path = r"D:\video\5m-q.mov"
+video_path = r"D:\video\5m-z.mov"
 # 中文
 # video_path = input("请输入视频路径!\n")
 import os

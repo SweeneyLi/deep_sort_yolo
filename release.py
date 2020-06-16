@@ -42,8 +42,8 @@ def main(video_path, sum_file_path, goal):
 
     Width, Height = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     Half_Height = Height / 2
-    g_env['input']['width'] = Width
-    g_env['input']['height'] = Height
+
+    yolo.plate_aero_height = Height * plate_aero_height_ratio if Height > 1000 else 0
 
     FrameNumber = cap.get(7)
     duration = FrameNumber / fps

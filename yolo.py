@@ -282,8 +282,8 @@ class Yolo4(object):
         self.iou = yolo_iou
         self.model_image_size = model_image_size
 
-        self.plate_aero_height = g_env['input']['height'] * plate_aero_height_ratio
-
+        # self.plate_aero_height = g_env['input']['height'] * plate_aero_height_ratio
+        self.plate_aero_height = 0
         self.gpu_num = 1
         self.load_yolo()
 
@@ -341,7 +341,7 @@ class Yolo4(object):
             if box[2] > self.plate_aero_height:
                 plate, p_color, p_score = detect_class_by_plate(np.array(image)[y:y + h, x: x + w, :], min_plate_score)
             else:
-                plate, p_color, p_score = None, None, 0
+                plate, p_color, p_score = None, Color.no_plate.value, 0
             # plate, p_color, p_score = None, None, 0
             # plate, p_color, p_score = detect_class_by_plate(np.array(image)[y:y + h, x: x + w, :], min_plate_score)
 

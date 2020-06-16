@@ -62,8 +62,9 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     fps = cap.get(cv2.CAP_PROP_FPS)
     # size = (int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) - cut_size)
     Width, Height = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    g_env['input']['width'] = Width
-    g_env['input']['height'] = Height
+
+    yolo.plate_aero_height = Height * plate_aero_height_ratio if Height > 1000 else 0
+
 
     FrameNumber = cap.get(7)
     duration = FrameNumber / fps
@@ -80,7 +81,8 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     vehicle_file = open(vehicle_file_path, 'w', encoding='gbk')
     csv_writer = csv.writer(vehicle_file)
     csv_writer.writerow(
-        ['frame', 'direction', 'vehicle_id', 'vehicle_type', 'vehicle_score', 'plate', 'plate_score', 'len_of_path',
+        ['frame', 'direction', 'vehicle_id', 'vehicle_type', 'vehicle_score', 'plate', 'plate_score', 'p_color',
+         'len_of_path',
          'width', 'height', 'minX', 'minY', 'maxX', 'maxY'])
 
     sum_file = open(sum_file_path, 'w', encoding='gbk')
@@ -186,7 +188,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
                 csv_writer.writerow(
                     [frame_index, direction, i.track_id, VehicleClass(i.v_class).name, i.v_score, i.plate, i.p_score,
-                     len(path)]
+                     Color(i.p_color).name, len(path)]
                     + position)
 
         if writeVideo_flag:
@@ -254,20 +256,22 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
             frame = np.concatenate((np.zeros((title_height, Width, 3), dtype="uint8"), frame))
 
             # video info
-            frame = cv2ImgAddText(frame, "市区-徐家汇天钥桥路路口-东西向-限速60km/h", frame_info_size * 5, 0, (255, 255, 0),
+
+            frame = cv2ImgAddText(frame, video_info, frame_info_size * 5, 0, (255, 255, 0),
                                   frame_info_size)
+
 
             # cv2.putText(frame, "in:" + str(sum(leave_list[0])), (int(0), int(30)), 0, 5e-3 * 200, (255, 100, 255), 3)
             # cv2.putText(frame, "out:" + str(sum(leave_list[1])), (int(0), int(60)), 0, 5e-3 * 200, (255, 100, 255), 3)
 
-            frame = cv2ImgAddText(frame, "进:" + str(sum(leave_list[0])), 0, 0, (255, 155, 255), frame_info_size)
-            frame = cv2ImgAddText(frame, "出:" + str(sum(leave_list[1])), 0, frame_info_size, (255, 155, 255),
-                                  frame_info_size)
+            frame = cv2ImgAddText(frame, "总计:" + str(sum(leave_list[0])), 0, 0, (255, 155, 255), frame_info_size)
+            # frame = cv2ImgAddText(frame, "出:" + str(sum(leave_list[1])), 0, frame_info_size, (255, 155, 255),
+            #                       frame_info_size)
 
             frame = cv2ImgAddText(frame, print_leave_list(leave_list[0]), frame_info_size * 5, frame_info_size,
                                   (255, 255, 255), vehicle_info_size)
-            frame = cv2ImgAddText(frame, print_leave_list(leave_list[1]), frame_info_size * 5,
-                                  frame_info_size + vehicle_info_size, (255, 255, 255), vehicle_info_size)
+            # frame = cv2ImgAddText(frame, print_leave_list(leave_list[1]), frame_info_size * 5,
+            #                       frame_info_size + vehicle_info_size, (255, 255, 255), vehicle_info_size)
 
             # show the instant result
             if show_real_time:
@@ -327,10 +331,10 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 # video_list = [r"D:\WorkSpaces\videos\123.mp4"]
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4",r"D:\video\B6_2020_5_27_2.mp4"]
 # video_list = [r"D:\video\B6_2020_6_1_1.mp4"]
-video_list = [r"D:\video\5m-z.mov"]
+video_list = [r"D:\video\5m-q2.mov"]
 
 video_small = True
-
+video_info = "市区-徐家汇天钥桥路路口-东西向-限速60km/h" if video_small else "非市区-朱桥收费站-东南-西北向"
 title_height = 100 if video_small else 300
 
 
@@ -339,10 +343,13 @@ def run():
         goal = video_path.split(".")[0].split("\\")[-1]
         print(goal)
         output_path = "output/r_%s.mov" % goal
-        while os.path.exists(output_path):
-            output_path = output_path.replace(".mov", "_2.mov")
         vehicle_file = "output/vehicle_%s.csv" % goal
         sum_file = "output/num_%s.csv" % goal
+        while os.path.exists(output_path):
+            goal += "_2"
+            output_path = "output/r_%s.mov" % goal
+            vehicle_file = "output/vehicle_%s.csv" % goal
+            sum_file = "output/num_%s.csv" % goal
 
         # lp = LineProfiler()
         # lp.add_function(detect_class_by_plate)
