@@ -18,7 +18,7 @@ import glob
 import imutils
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-
+from collections import  deque
 from line_profiler import LineProfiler
 
 # os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
@@ -37,8 +37,7 @@ show_real_time = True
 # start_frame = 100
 # end_frame = 181
 
-# start_frame = 227 * 30
-# end_frame = 20
+
 
 # =====================================================================================================================
 
@@ -64,7 +63,6 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     Width, Height = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     yolo.plate_aero_height = Height * plate_aero_height_ratio if Height > 1000 else 0
-
 
     FrameNumber = cap.get(7)
     duration = FrameNumber / fps
@@ -103,21 +101,27 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     print(goal + " start!")
     leave_list = [[0 for _ in range(11)], [0 for _ in range(11)]]
 
+    # start_frame = (3 * 60 + 50) * fps
+    # end_frame = (4 * 60 + 50) * fps
+
     start = time.time()
     Interval = fps * 30
     interval_frame = Interval
     skip_frame = 0
-    current_nums = 0
+
+    # nums_deque = deque([99, 98], maxlen=len_nums_deque)
     while 1:
         ret, frame = cap.read()  # frame shape 640*480*3
         if not ret:
             break
 
         frame_index += 1
+        # if skip_frame:
+        #     # print(frame_index, skip_frame, nums_deque)
+        #     skip_frame -= 1
+        #     continue
         interval_frame -= 1
-        # speedUp
-        if frame_index % speedRate != 0:
-            continue
+
 
         # test
         # if start_frame and frame_index < start_frame:
@@ -127,9 +131,6 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
         t1 = time.time()
 
-        # if skip_frame:
-        #     skip_frame -= 1
-        #     continue
 
         image = Image.fromarray(frame)
         # image = Image.fromarray(frame[..., ::-1])  # bgr to rgb
@@ -144,10 +145,13 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
         # boxs, class_names, class_scores, plate_list, p_score_list = yolo.detect_image2(frame)
         boxs, class_names, class_scores, plate_list, p_score_list, p_color_list = yolo.detect_image(image)
-
         current_nums = len(boxs)
-        # if current_nums < 3:
-        #     skip_frame = 1
+        # nums_deque.append(current_nums)
+        # if nums_deque[-1] == nums_deque[-2] and is_same_deque(nums_deque):
+        #     nums_deque.append(99)
+        #     skip_frame = skip_every_frame
+
+
 
         features = encoder(frame, boxs)
         detections = [Detection(bbox, feature, v_class, v_score, plate, p_score, p_color) for
@@ -260,18 +264,27 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
             frame = cv2ImgAddText(frame, video_info, frame_info_size * 5, 0, (255, 255, 0),
                                   frame_info_size)
 
-
             # cv2.putText(frame, "in:" + str(sum(leave_list[0])), (int(0), int(30)), 0, 5e-3 * 200, (255, 100, 255), 3)
             # cv2.putText(frame, "out:" + str(sum(leave_list[1])), (int(0), int(60)), 0, 5e-3 * 200, (255, 100, 255), 3)
 
-            frame = cv2ImgAddText(frame, "总计:" + str(sum(leave_list[0])), 0, 0, (255, 155, 255), frame_info_size)
-            # frame = cv2ImgAddText(frame, "出:" + str(sum(leave_list[1])), 0, frame_info_size, (255, 155, 255),
-            #                       frame_info_size)
+            if one_direction:
+                frame = cv2ImgAddText(frame, "总计:" + str(sum(leave_list[0])), 0, 0, (255, 155, 255), frame_info_size)
+                # frame = cv2ImgAddText(frame, "出:" + str(sum(leave_list[1])), 0, frame_info_size, (255, 155, 255),
+                #                       frame_info_size)
 
-            frame = cv2ImgAddText(frame, print_leave_list(leave_list[0]), frame_info_size * 5, frame_info_size,
-                                  (255, 255, 255), vehicle_info_size)
-            # frame = cv2ImgAddText(frame, print_leave_list(leave_list[1]), frame_info_size * 5,
-            #                       frame_info_size + vehicle_info_size, (255, 255, 255), vehicle_info_size)
+                frame = cv2ImgAddText(frame, print_leave_list(leave_list[0]), frame_info_size * 5, frame_info_size,
+                                      (255, 255, 255), vehicle_info_size)
+                # frame = cv2ImgAddText(frame, print_leave_list(leave_list[1]), frame_info_size * 5,
+                #                       frame_info_size + vehicle_info_size, (255, 255, 255), vehicle_info_size)
+            else:
+                frame = cv2ImgAddText(frame, "进:" + str(sum(leave_list[0])), 0, 0, (255, 155, 255), frame_info_size)
+                frame = cv2ImgAddText(frame, "出:" + str(sum(leave_list[1])), 0, frame_info_size, (255, 155, 255),
+                                      frame_info_size)
+
+                frame = cv2ImgAddText(frame, print_leave_list(leave_list[0]), frame_info_size * 5, frame_info_size,
+                                      (255, 255, 255), vehicle_info_size)
+                frame = cv2ImgAddText(frame, print_leave_list(leave_list[1]), frame_info_size * 5,
+                                      frame_info_size + vehicle_info_size, (255, 255, 255), vehicle_info_size)
 
             # show the instant result
             if show_real_time:
@@ -334,6 +347,8 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 video_list = [r"D:\video\5m-q2.mov"]
 
 video_small = True
+one_direction = video_small
+
 video_info = "市区-徐家汇天钥桥路路口-东西向-限速60km/h" if video_small else "非市区-朱桥收费站-东南-西北向"
 title_height = 100 if video_small else 300
 

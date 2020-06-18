@@ -17,6 +17,7 @@ import csv
 import glob
 import numpy as np
 from math import ceil
+from collections import deque
 
 from line_profiler import LineProfiler
 
@@ -25,6 +26,8 @@ from line_profiler import LineProfiler
 
 warnings.filterwarnings('ignore')
 backend.clear_session()
+
+
 # =====================================================================================================================
 
 
@@ -66,23 +69,23 @@ def main(video_path, sum_file_path, goal):
     leave_list = [[0 for _ in range(11)], [0 for _ in range(11)]]
 
     start = time.time()
-    # skip_frame = 0
+    skip_frame = 0
     frame_index = 0
     interval_frame = Interval
 
+    # nums_deque = deque([99, 98], maxlen=len_nums_deque)
     while 1:
         ret, frame = cap.read()  # frame shape 640*480*3
         if not ret:
             break
         frame_index += 1
+
+        if skip_frame:
+            # print(frame_index, skip_frame, nums_deque)
+            skip_frame -= 1
+            continue
+
         interval_frame -= 1
-
-        # if frame_index % speedRate != 0:
-        #     continue
-
-        # if skip_frame:
-        #     skip_frame -= 1
-        #     continue
 
         image = Image.fromarray(frame)
 
@@ -96,8 +99,10 @@ def main(video_path, sum_file_path, goal):
 
         boxs, class_names, class_scores, plate_list, p_score_list, p_color_list = yolo.detect_image(image)
 
-        # if len(boxs) < 3:
-        #     skip_frame = 3 - len(boxs)
+        # nums_deque.append(len(boxs))
+        # if nums_deque[-1] == nums_deque[-2] and is_same_deque(nums_deque):
+        #     nums_deque.append(99)
+        #     skip_frame = skip_every_frame
 
         features = encoder(frame, boxs)
         detections = [Detection(bbox, feature, v_class, v_score, plate, p_score, p_color) for
@@ -155,10 +160,11 @@ def main(video_path, sum_file_path, goal):
     return leave_list, (seconds / duration)
 
 
-
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4", r"D:\video\B6_2020_5_27_2.mp4"]
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4"]
-video_list = [r"D:\video\5-30.mov"]
+video_list = [r"D:\video\5m-q2.mov"]
+
+
 # video_list = [r"D:\WorkSpaces\videos\16s.mp4"]
 
 def run():
@@ -166,9 +172,13 @@ def run():
         if not os.path.exists(video_path):
             raise Exception("the path '%s' is wrong" % video_path)
         goal = video_path.split(".")[0].split("\\")[-1]
-        print(goal)
-        sum_file = "output_csv/num_%s.csv" % goal
 
+        sum_file = "output_csv/num_%s.csv" % goal
+        while os.path.exists(sum_file):
+            goal += "_2"
+            sum_file = "output_csv/num_%s.csv" % goal
+
+        print(goal)
         # lp = LineProfiler()
         # lp.add_function(yolo.detect_image)
         # lp_wrapper = lp(main)

@@ -67,7 +67,7 @@ def readVideo(pathName):
 
     fps = cap.get(cv2.CAP_PROP_FPS)
     width, height = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)), int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    left_top, bottom_right = (0, 150), (width, height)
+    left_top, bottom_right = (0, 0), (width, height)
     frame_index = 0
     while (cap.isOpened()):
         ret, frame = cap.read()
@@ -88,9 +88,9 @@ def readVideo(pathName):
 
 
 def video_process(video_path, new_fps, speed_rate, new_position, fill_position=None):
-    fill_position = np.array([
-        [[1550, 0], [1882, 0], [1880, 400]]
-    ])
+    # fill_position = np.array([
+    #     [[1550, 0], [1882, 0], [1880, 400]]
+    # ])
     (left_top, bottom_right) = new_position
     width = bottom_right[0] - left_top[0]
     height = bottom_right[1] - left_top[1]
@@ -110,10 +110,10 @@ def video_process(video_path, new_fps, speed_rate, new_position, fill_position=N
     fps = cap.get(cv2.CAP_PROP_FPS)
     frame_cnt = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
+    # start_frame = (3 * 60 + 50) * fps
+    # end_frame = (4 * 60 + 50) * fps
     start_frame = 0
     end_frame = None
-    # start_frame = 55 * fps
-    # end_frame = (55 + 5 * 60)* fps
 
     for i in trange(frame_cnt):
         ret, frame = cap.read()
@@ -125,7 +125,7 @@ def video_process(video_path, new_fps, speed_rate, new_position, fill_position=N
             frame = frame[left_top[1]:bottom_right[1], left_top[0]: bottom_right[0], :]
 
             if not fill_position is None:
-                frame = cv2.fillPoly(frame, fill_position, (0,0,0))
+                frame = cv2.fillPoly(frame, fill_position, (0, 0, 0))
 
             out.write(frame)
             if show_video:
@@ -139,11 +139,12 @@ def video_process(video_path, new_fps, speed_rate, new_position, fill_position=N
 
 
 # video_path = r"D:\WorkSpaces\videos\DJI_0005.MOV"
-# video_path = r"D:\WorkSpaces\deep_sort_yolov3\output\past\r_DJI_0010.mov"
-video_path = r"D:\video\5m-z.mov"
+video_path = r"D:\WorkSpaces\deep_sort_yolov3\output\r_5-30.mov"
+# video_path = r"D:\video\5m-z.mov"
 # 中文
 # video_path = input("请输入视频路径!\n")
 import os
+
 while not os.path.exists(video_path):
     video_path = input("该路径错误，请重新输入!\n")
 
@@ -159,7 +160,6 @@ try:
 except Exception as e:
     print("输入格式错误!")
     print(e)
-
 
 # if speed_rate != 1 or fps != new_fps:
 #     video_process(video_path, new_fps, speed_rate, (left_top, bottom_right))

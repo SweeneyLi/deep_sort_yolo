@@ -57,6 +57,9 @@ def print_leave_list(leave_list):
                    '非沪牌': 8, '沪牌': 9, '沪C': 10}
     new_list[0] += new_list[2]
     new_list[8] += new_list[3]
+
+    new_list[9] += new_list[10]
+    new_list[10] = 0
     for i, v in class_dict2.items():
         res.append(i + ":" + str(new_list[v]))
     return ", ".join(res)
@@ -161,8 +164,8 @@ def judge_color(Judge_HSV, img):
     h, w, _ = img.shape
     # print(img.shape)
     blue_sum, yellow_sum, green_sum = 0, 0, 0
-    for i in range(0, h, 1):
-        for j in range(0, w, 1):
+    for i in range(0, h, 3):
+        for j in range(0, w, 3):
             if Judge_HSV.isBlue(img[i][j]):
                 blue_sum += 1
             elif Judge_HSV.isYellow(img[i][j]):
@@ -280,13 +283,14 @@ def judge_vehicle_type(vehicle_class_v, vehicle_score, height, plate, p_color):
 
     # get the bus and coach
     if vehicle_class_v == VehicleClass.bus.value:
-        if not p_color == Color.yellow.value:
-            vehicle_class_v = VehicleClass.van.value
+        pass
+        # if not p_color == Color.yellow.value:
+        #     vehicle_class_v = VehicleClass.van.value
         # vehicle_class = judge_bus_coach_by_plate(plate)
         # vehicle_score = plate_constant_score
         # vehicle_score += (1 - vehicle_score) / 3
         # vehicle_score = 0.999
-        vehicle_class_v = VehicleClass.bus.value
+
 
     # get the container truck by height
     elif height > height_of_truck:
@@ -335,3 +339,10 @@ def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
     draw.text((left, top), text, textColor, font=fontStyle)
     # 转换回OpenCV格式
     return cv2.cvtColor(numpy.asarray(img), cv2.COLOR_RGB2BGR)
+
+def is_same_deque(nums_deque):
+    nums = nums_deque[0]
+    for n in nums_deque:
+        if not n == nums:
+            return False
+    return True
