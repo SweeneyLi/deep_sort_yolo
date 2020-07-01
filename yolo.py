@@ -37,7 +37,7 @@ class YOLO(object):
         self.class_names = self._get_class()
         self.anchors = self._get_anchors()
 
-        self.plate_aero_height = g_env['input']['height'] * plate_aero_height_ratio
+        self.plate_aero_height = 0
         # config = tf.ConfigProto()
         # config.gpu_options.allow_growth = True
         # self.sess = tf.Session(config=config)
@@ -121,6 +121,7 @@ class YOLO(object):
         return_scores = []
         return_plate = []
         return_p_scores = []
+        return_p_colors = []
 
         for i, c in reversed(list(enumerate(out_classes))):
 
@@ -150,11 +151,12 @@ class YOLO(object):
             c, out_scores[i] = judge_vehicle_type(c, out_scores[i], h, plate, p_color)
             return_plate.append(plate)
             return_p_scores.append(p_score)
+            return_p_colors.append(p_color)
 
             return_class_name.append(c)
             return_scores.append(out_scores[i])
 
-        return return_boxs, return_class_name, return_scores, return_plate, return_p_scores
+        return return_boxs, return_class_name, return_scores, return_plate, return_p_scores, return_p_colors
 
     def detect_image2(self, image):
         # if self.is_fixed_size:

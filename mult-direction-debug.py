@@ -15,11 +15,12 @@ from keras import backend
 from utils import *
 import csv
 import glob
-# import imutils
+import imutils
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 from collections import deque
 from line_profiler import LineProfiler
+import json
 
 # os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
@@ -52,6 +53,11 @@ Height = None
 
 
 def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
+    with open("mask_points.json", 'r') as f:
+        MASK_List = np.array(json.load(f)[video_path.split("\\")[-1]])
+    num_of_mask = len(MASK_List)
+    title_height = frame_info_size + vehicle_info_size * num_of_mask + 50
+
     start = time.time()
     cap = cv2.VideoCapture(video_path)
     cap.set(6, cv2.VideoWriter.fourcc('m', 'p', '4', 'v'))
@@ -68,6 +74,15 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
     # Width, Height = Height, Width
     print("fps: %s, width: %s, height: %s" % (fps, Width, Height))
+
+    # mask
+    mask_in_img = np.zeros((Height, Width, 3), dtype='uint8')
+    for i, a_mask in enumerate(MASK_List):
+        pts = np.array([a_mask], np.int32)
+        pts = pts.reshape((-1, 1, 2))
+        cv2.fillPoly(mask_in_img, [pts], (i + 1, 0, 0))
+    mask_in_img = mask_in_img[:, :, 0]
+    print(mask_in_img.shape)
 
     if writeVideo_flag:
         # fourcc = cv2.VideoWriter_fourcc('m', 'p', '4', 'v')
@@ -98,7 +113,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     time2 = time.time()
     print("load need: " + str(time2 - start) + 's')
     print(goal + " start!")
-    leave_list = [[0 for _ in range(11)], [0 for _ in range(11)]]
+    leave_list = [[0 for _ in range(11)] for _ in range(num_of_mask)]
 
     # start_frame = (3 * 60 + 50) * fps
     # end_frame = (4 * 60 + 50) * fps
@@ -163,15 +178,13 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
         for i in tracker.leaves:
             path = i.center_path
-            direction = -1
-            if len(path) > 10:
-                if path[0][1] - path[-1][1] < 0 and i.to_tlbr_int()[3] > Height / 2:
-                    direction = 0
-                elif path[0][1] - path[-1][1] > 0 and i.to_tlbr_int()[3] < Height / 2:
-                    direction = 1
+            direction = mask_in_img[path[-1][1]][path[-1][0]]
+            # minx, miny, maxx, maxy = i.to_tlbr()
+            # print(i.to_tlbr(), path[-1])
+            # direction = mask_in_img[int((minx + maxx) / 2)][int(maxy)]
 
-            if direction != -1:
-                leave_list[direction][i.v_class] += 1
+            if len(path) > 10 and direction != 0:
+                leave_list[direction - 1][i.v_class] += 1
                 position = i.to_tlbr_int()
                 x = int(position[0])
                 y = int(position[1])
@@ -249,34 +262,25 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
             frame = cv2ImgAddText(frame, "车辆数目: %d" % (current_nums), 0, frame_info_size + frame_info_size,
                                   (0, 255, 255), frame_info_size)
 
+            for i, a_mask in enumerate(MASK_List):
+                pts = np.array([a_mask], np.int32)
+                pts = pts.reshape((-1, 1, 2))
+                cv2.polylines(frame, [pts], True, (i * 50, i * 50, i * 50), thickness=10)
+                cv2.putText(frame, str(i), tuple(a_mask[0]), 0, 1, (i * 50, i * 50, i * 50), 8)
+
             frame = np.concatenate((np.zeros((title_height, Width, 3), dtype="uint8"), frame))
 
             # video info
 
-            frame = cv2ImgAddText(frame, video_info, frame_info_size * 5, 0, (255, 255, 0),
-                                  frame_info_size)
+            # frame = cv2ImgAddText(frame, video_info, frame_info_size * 5, 0, (255, 255, 0),
+            #                       frame_info_size)
 
-            # cv2.putText(frame, "in:" + str(sum(leave_list[0])), (int(0), int(30)), 0, 5e-3 * 200, (255, 100, 255), 3)
-            # cv2.putText(frame, "out:" + str(sum(leave_list[1])), (int(0), int(60)), 0, 5e-3 * 200, (255, 100, 255), 3)
-
-            if one_direction:
-                frame = cv2ImgAddText(frame, "总计:" + str(sum(leave_list[0])), 0, 0, (255, 155, 255), frame_info_size)
-                # frame = cv2ImgAddText(frame, "出:" + str(sum(leave_list[1])), 0, frame_info_size, (255, 155, 255),
-                #                       frame_info_size)
-
-                frame = cv2ImgAddText(frame, print_leave_list(leave_list[0]), frame_info_size * 5, frame_info_size,
-                                      (255, 255, 255), vehicle_info_size)
-                # frame = cv2ImgAddText(frame, print_leave_list(leave_list[1]), frame_info_size * 5,
-                #                       frame_info_size + vehicle_info_size, (255, 255, 255), vehicle_info_size)
-            else:
-                frame = cv2ImgAddText(frame, "进:" + str(sum(leave_list[0])), 0, 0, (255, 155, 255), frame_info_size)
-                frame = cv2ImgAddText(frame, "出:" + str(sum(leave_list[1])), 0, frame_info_size, (255, 155, 255),
-                                      frame_info_size)
-
-                frame = cv2ImgAddText(frame, print_leave_list(leave_list[0]), frame_info_size * 5, frame_info_size,
-                                      (255, 255, 255), vehicle_info_size)
-                frame = cv2ImgAddText(frame, print_leave_list(leave_list[1]), frame_info_size * 5,
-                                      frame_info_size + vehicle_info_size, (255, 255, 255), vehicle_info_size)
+            for i in range(num_of_mask):
+                frame = cv2ImgAddText(frame, "总计:" + str(sum(leave_list[i])), 0,
+                                      frame_info_size + vehicle_info_size * i, (255, 155, 255),
+                                      vehicle_info_size)
+                frame = cv2ImgAddText(frame, str(i) + ":" + print_leave_list(leave_list[i]), frame_info_size * 5,
+                                      frame_info_size + vehicle_info_size * i, (255, 255, 255), vehicle_info_size)
 
             # show the instant result
             if show_real_time:
@@ -295,8 +299,9 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         if not interval_frame:
             print("1s cost:" + str((time.time() - start) / 30))
             start = time.time()
-            print(int(frame_index / fps), "in:", (leave_list[0]), "out:", (leave_list[1]))
-            csv_writer2.writerow(leave_list[0] + leave_list[1])
+            for i, a_list in enumerate(leave_list):
+                print(str(i) + ": " + str(a_list))
+            csv_writer2.writerow(leave_list)
             interval_frame = Interval
 
         # test
@@ -311,8 +316,12 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 
     print(goal + " " + str(frame_index) + " frame - Finish!")
 
-    print("in:", (leave_list[0]), "out:", (leave_list[1]))
-    print("all: in: %d, out:%d" % (sum(leave_list[0]), sum(leave_list[1])))
+    all_sum = 0
+    for i, a_list in enumerate(leave_list):
+        print("{}: sum: {}, {}".format(i, sum(a_list), str(a_list)))
+        all_sum += sum(a_list)
+    print("all: {}".format(all_sum))
+
     time_need = round((time.time() - time2) / 60, 2)
     print("run need: %02d:%02d:%02d\n" % (h, m, s),
           "1:" + str(seconds / duration))
@@ -336,15 +345,15 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
 # video_list = [r"D:\WorkSpaces\videos\123.mp4"]
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4",r"D:\video\B6_2020_5_27_2.mp4"]
 # video_list = [r"D:\video\B6_2020_6_1_1.mp4"]
-video_list = [r"D:\Videos\5m.mov"]
+video_list = [r"D:\video\5m.mov"]
 
 video_small = True
 one_direction = video_small
 frame_info_size = 40 if video_small else 80
 vehicle_info_size = 30 if video_small else 60
 
-video_info = "市区-徐家汇天钥桥路路口-东西向-限速60km/h" if video_small else "非市区-朱桥收费站-东南-西北向"
-title_height = 100 if video_small else 300
+
+# video_info = "市区-徐家汇天钥桥路路口-东西向-限速60km/h" if video_small else "非市区-朱桥收费站-东南-西北向"
 
 
 def run():

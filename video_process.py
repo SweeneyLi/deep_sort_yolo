@@ -61,7 +61,7 @@ def get_rect(im, title='get_rect'):  # (a,b) = get_rect(im, title='get_rect')
 def readVideo(pathName):
     # print("Please input s to stop the video and choose the area with mouse!\nThen input q to the next step!")
     print("按s暂停视频，用鼠标选择区域，可重复选择\n按q结束")
-    time.sleep(2)
+    # time.sleep(2)
 
     cap = cv2.VideoCapture(pathName)
 
