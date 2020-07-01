@@ -18,7 +18,7 @@ import glob
 # import imutils
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
-from collections import deque
+from collections import  deque
 from line_profiler import LineProfiler
 
 # os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
@@ -36,6 +36,7 @@ show_real_time = True
 
 # start_frame = 100
 # end_frame = 181
+
 
 
 # =====================================================================================================================
@@ -121,6 +122,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         #     continue
         interval_frame -= 1
 
+
         # test
         # if start_frame and frame_index < start_frame:
         #     continue
@@ -128,6 +130,7 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         #     break
 
         t1 = time.time()
+
 
         image = Image.fromarray(frame)
         # image = Image.fromarray(frame[..., ::-1])  # bgr to rgb
