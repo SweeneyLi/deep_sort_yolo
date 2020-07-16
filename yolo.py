@@ -20,8 +20,9 @@ from keras.layers import Input
 
 from utils import *
 
-
 model_dir = 'yolov3_640'
+
+
 # model_dir = 'yolov4_start'
 
 class YOLO(object):
@@ -226,6 +227,7 @@ class YOLO(object):
     def close_session(self):
         self.sess.close()
 
+
 class Yolo4(object):
     def get_class(self):
         classes_path = os.path.expanduser(self.classes_path)
@@ -262,18 +264,18 @@ class Yolo4(object):
         self.sess = K.get_session()
 
         # Load model, or construct model and load weights.
-        self.yolo4_model = yolo4_body(Input(shape=(608, 608, 3)), num_anchors//3, num_classes)
+        self.yolo4_model = yolo4_body(Input(shape=(608, 608, 3)), num_anchors // 3, num_classes)
         self.yolo4_model.load_weights(model_path)
 
         print('{} model, anchors, and classes loaded.'.format(model_path))
 
-        if self.gpu_num>=2:
+        if self.gpu_num >= 2:
             self.yolo4_model = multi_gpu_model(self.yolo4_model, gpus=self.gpu_num)
 
-        self.input_image_shape = K.placeholder(shape=(2, ))
+        self.input_image_shape = K.placeholder(shape=(2,))
         self.boxes, self.scores, self.classes = yolo_eval(self.yolo4_model.output, self.anchors,
-                len(self.class_names), self.input_image_shape,
-                score_threshold=self.score)
+                                                          len(self.class_names), self.input_image_shape,
+                                                          score_threshold=self.score)
 
     def __init__(self):
         self.model_path = './model_data/' + 'yolov4_start' + '/yolo.h5'
@@ -356,6 +358,7 @@ class Yolo4(object):
             return_scores.append(out_scores[i])
 
         return return_boxs, return_class_name, return_scores, return_plate, return_p_scores, return_p_colors
+
 
 v4_change_list = [0, 0, 3, 4, 0, 0, 0, 6]
 

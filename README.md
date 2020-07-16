@@ -39,6 +39,9 @@
 - parameter.py 参数配置文件
 - utils.py 判别车牌颜色，类型等函数
 - video_process.py 视频预处理，裁剪，预跳帧
+- draw_mask.py 视频打框
+- mask_points.json 打框后保存的“视频：点”的信息
+- mult-direction-debug.py 打框后的多方向车辆检测
 
 
 

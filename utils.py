@@ -1,13 +1,12 @@
-from tools.hyperlpr import *
-import matplotlib.pyplot as plt
 from enum import Enum
+
 import cv2
-from parameter import *
-import cv2
+import matplotlib.pyplot as plt
 import numpy
 from PIL import Image, ImageDraw, ImageFont
 
-import uuid
+from parameter import *
+from tools.hyperlpr import *
 
 
 # third data
@@ -63,14 +62,6 @@ def print_leave_list(leave_list):
     for i, v in class_dict2.items():
         res.append(i + ":" + str(new_list[v]))
     return ", ".join(res)
-
-
-# def class2Id(v_class):
-#     return class_dict[v_class]
-#
-#
-# def id2Class(v_id):
-#     return reverse_class[v_id]
 
 
 def detect_class_by_plate(image, min_plate_score=0.3):
@@ -217,60 +208,6 @@ def judge_plate_color(image, position):
 Judge_HSV = HSV()
 
 
-# def judge_vehicle_type(vehicle_class, vehicle_score, height, plate, p_color):
-#     """
-#
-#     :param vehicle_class: value
-#     :param vehicle_score:
-#     :param height:
-#     :param plate:
-#     :return: new_class, new_scores
-#     """
-#     # value to class
-#     vehicle_class = VehicleClass(vehicle_class)
-#
-#     # rise the score of the rare class
-#     if vehicle_class in [VehicleClass.bus, VehicleClass.coach]:
-#         # vehicle_class = judge_bus_coach_by_plate(plate)
-#         # vehicle_score = plate_constant_score
-#         # vehicle_score += (1 - vehicle_score) / 3
-#         vehicle_score = 0.999
-#         vehicle_class = VehicleClass.coach
-#         pass
-#
-#     if vehicle_class != VehicleClass.coach and vehicle_class != VehicleClass.bus and height > height_of_heavy_truck:
-#         if height > height_of_container_truck:
-#             vehicle_class = VehicleClass.container_truck
-#             vehicle_score = height_container_truck_score
-#         else:
-#             vehicle_class = VehicleClass.heavy_truck
-#             vehicle_score = height_heavy_truck_score
-#
-#     if vehicle_class in [VehicleClass.taxi, VehicleClass.car, VehicleClass.van]:
-#         # vehicle_class = judge_taxi_by_plate(plate)
-#         # vehicle_score = plate_constant_score
-#         pass
-#
-#     if vehicle_class == VehicleClass.heavy_truck:
-#         if p_color == PlateColor.blue:
-#             vehicle_class = VehicleClass.van
-#         elif p_color == PlateColor.yellow:
-#             vehicle_class = VehicleClass.heavy_truck
-#     elif vehicle_class in [VehicleClass.coach, VehicleClass.car, VehicleClass.van]:
-#         if p_color == PlateColor.yellow and vehicle_class != VehicleClass.coach:
-#             vehicle_class = VehicleClass.coach
-#         elif plate:
-#             if plate[0] == '沪':
-#                 if plate[1].lower() == 'c':
-#                     vehicle_class = VehicleClass.car_hc
-#                 else:
-#                     vehicle_class = VehicleClass.car_h
-#             else:
-#                 vehicle_class = VehicleClass.car_nh
-#
-#     return vehicle_class.value, vehicle_score
-
-
 def judge_vehicle_type(vehicle_class_v, vehicle_score, height, plate, p_color):
     """
 
@@ -339,6 +276,7 @@ def cv2ImgAddText(img, text, left, top, textColor=(0, 255, 0), textSize=20):
     draw.text((left, top), text, textColor, font=fontStyle)
     # 转换回OpenCV格式
     return cv2.cvtColor(numpy.asarray(img), cv2.COLOR_RGB2BGR)
+
 
 def is_same_deque(nums_deque):
     nums = nums_deque[0]

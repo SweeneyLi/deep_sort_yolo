@@ -2,24 +2,23 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division, print_function, absolute_import
-from timeit import time
+
+import argparse
+import csv
 import warnings
-from PIL import Image
-from yolo import YOLO, Yolo4
-from deep_sort import preprocessing
+from timeit import time
+
+# import imutils
+import numpy as np
+from keras import backend
+
 from deep_sort import nn_matching
+from deep_sort import preprocessing
 from deep_sort.detection import Detection
 from deep_sort.tracker import Tracker
 from tools import generate_detections as gdet
-from keras import backend
 from utils import *
-import csv
-import glob
-# import imutils
-import numpy as np
-from PIL import Image, ImageDraw, ImageFont
-from collections import  deque
-from line_profiler import LineProfiler
+from yolo import Yolo4
 
 # os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
@@ -36,7 +35,6 @@ show_real_time = True
 
 # start_frame = 100
 # end_frame = 181
-
 
 
 # =====================================================================================================================
@@ -122,7 +120,6 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         #     continue
         interval_frame -= 1
 
-
         # test
         # if start_frame and frame_index < start_frame:
         #     continue
@@ -130,7 +127,6 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
         #     break
 
         t1 = time.time()
-
 
         image = Image.fromarray(frame)
         # image = Image.fromarray(frame[..., ::-1])  # bgr to rgb
@@ -333,43 +329,50 @@ def main(video_path, output_path, vehicle_file_path, sum_file_path, goal):
     return leave_list, time_need
 
 
-# video_list = [r"F:\Workplace\yolo_data\videos\IMG_2712.MOV"]
-# video_list = glob.glob(r"D:\WorkSpaces\videos\*.MOV")
-# video_list = [r"D:\WorkSpaces\videos\DJI_0005.MOV"]
-# video_list = [r"D:\WorkSpaces\videos\123.mp4"]
-# video_list = [r"D:\video\B6_2020_5_27_1.mp4",r"D:\video\B6_2020_5_27_2.mp4"]
-# video_list = [r"D:\video\B6_2020_6_1_1.mp4"]
-video_list = [r"D:\Videos\5m.mov"]
+# video_list = [r"D:\Videos\5m.mov"]
 
 video_small = True
 one_direction = video_small
 frame_info_size = 40 if video_small else 80
 vehicle_info_size = 30 if video_small else 60
-
-video_info = "市区-徐家汇天钥桥路路口-东西向-限速60km/h" if video_small else "非市区-朱桥收费站-东南-西北向"
 title_height = 100 if video_small else 300
 
 
-def run():
-    for video_path in video_list:
-        goal = video_path.split(".")[0].split("\\")[-1]
-        print(goal)
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--video_path", type=str, default=r"D:\Videos\5m-z.mov")
+    parser.add_argument("--video_info", type=str, default="")
+    return parser.parse_args()
+
+
+yolo = Yolo4()
+
+if __name__ == "__main__":
+    args = parse_args()
+    video_path = args.video_path
+    video_info = args.video_path
+    if video_info == "":
+        video_info = "市区-徐家汇天钥桥路路口-东西向-限速60km/h" if video_small else "非市区-朱桥收费站-东南-西北向"
+
+    # for video_path in video_list:
+    goal = video_path.split(".")[0].split("\\")[-1]
+    print(goal)
+    output_path = "output/r_%s.mov" % goal
+    vehicle_file = "output/vehicle_%s.csv" % goal
+    sum_file = "output/num_%s.csv" % goal
+    while os.path.exists(output_path):
+        goal += "_2"
         output_path = "output/r_%s.mov" % goal
         vehicle_file = "output/vehicle_%s.csv" % goal
         sum_file = "output/num_%s.csv" % goal
-        while os.path.exists(output_path):
-            goal += "_2"
-            output_path = "output/r_%s.mov" % goal
-            vehicle_file = "output/vehicle_%s.csv" % goal
-            sum_file = "output/num_%s.csv" % goal
 
-        # lp = LineProfiler()
-        # lp.add_function(detect_class_by_plate)
-        # lp.add_function(yolo.detect_image)
-        # lp_wrapper = lp(main)
-        # lp_wrapper(video_path, output_path, vehicle_file, sum_file, goal)
-        # lp.print_stats()
-        main(video_path, output_path, vehicle_file, sum_file, goal)
+    # lp = LineProfiler()
+    # lp.add_function(detect_class_by_plate)
+    # lp.add_function(yolo.detect_image)
+    # lp_wrapper = lp(main)
+    # lp_wrapper(video_path, output_path, vehicle_file, sum_file, goal)
+    # lp.print_stats()
+    main(video_path, output_path, vehicle_file, sum_file, goal)
 
     # ===================================================================
     # parameter_file = open("output/para/parameter.csv", 'w', encoding='gbk')
@@ -419,7 +422,4 @@ def run():
     #                 return
     # parameter_file.close()
 
-
 # yolo = YOLO()
-yolo = Yolo4()
-run()

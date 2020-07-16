@@ -8,6 +8,8 @@ import cv2
 import numpy as np
 from tqdm import tqdm, trange
 import time
+import argparse
+import os
 
 current_pos = None
 tl = None
@@ -138,54 +140,28 @@ def video_process(video_path, new_fps, speed_rate, new_position, fill_position=N
     print("The video is processed!\n The path is %s." % output_path)
 
 
-# video_path = r"D:\WorkSpaces\videos\DJI_0005.MOV"
-video_path = r"D:\WorkSpaces\deep_sort_yolov3\output\r_5-30.mov"
-# video_path = r"D:\video\5m-z.mov"
-# 中文
-# video_path = input("请输入视频路径!\n")
-import os
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--video_path", type=str, default=r"D:\Videos\5m-z.mov")
+    return parser.parse_args()
 
-while not os.path.exists(video_path):
-    video_path = input("该路径错误，请重新输入!\n")
 
-(left_top, bottom_right), fps = readVideo(video_path)
-print("原视频的fps为 %s" % fps)
-try:
-    speed_rate = input("请输入加速比，默认为3（直接回车）\n")
-    speed_rate = 3 if speed_rate == '' else int(speed_rate)
-    new_fps = input("请输入新的fps，默认为原fps/加速比（直接回车）\n")
-    new_fps = fps / speed_rate if new_fps == '' else int(new_fps)
+if __name__ == "__main__":
+    args = parse_args()
+    video_path = args.video_path
 
-    video_process(video_path, new_fps, speed_rate, (left_top, bottom_right))
-except Exception as e:
-    print("输入格式错误!")
-    print(e)
+    while not os.path.exists(video_path):
+        video_path = input("该路径错误，请重新输入!\n")
 
-# if speed_rate != 1 or fps != new_fps:
-#     video_process(video_path, new_fps, speed_rate, (left_top, bottom_right))
-#     print("转换完成!")
-# else:
-#     print("无需转换!")
+    (left_top, bottom_right), fps = readVideo(video_path)
+    print("原视频的fps为 %s" % fps)
+    try:
+        speed_rate = input("请输入加速比，默认为3（直接回车）\n")
+        speed_rate = 3 if speed_rate == '' else int(speed_rate)
+        new_fps = input("请输入新的fps，默认为原fps/加速比（直接回车）\n")
+        new_fps = fps / speed_rate if new_fps == '' else int(new_fps)
 
-# English
-# video_path = input("Please input your video path!\n")
-# import os
-# while not os.path.exists(video_path):
-#     video_path = input("The path is wrong! Please input again!\n")
-#
-# (left_top, bottom_right), fps = readVideo(video_path)
-# print("The original fps of videos is %s" % fps)
-# try:
-#     speed_rate = input("Which speed rate do you want? Please input speed rate. (default is 3 )\n")
-#     speed_rate = 3 if speed_rate == '' else int(speed_rate)
-#     new_fps = input("Which fps do you want? Please input new fps. (default means same fps)\n")
-#     new_fps = fps if new_fps == '' else int(new_fps)
-# except Exception as e:
-#     print("Please input the right format!")
-#     print(e)
-#
-# if speed_rate != 1 or fps != new_fps:
-#     video_process(video_path, new_fps, speed_rate, (left_top, bottom_right))
-#     print("End!")
-# else:
-#     print("No need to change!")
+        video_process(video_path, new_fps, speed_rate, (left_top, bottom_right))
+    except Exception as e:
+        print("输入格式错误!")
+        print(e)

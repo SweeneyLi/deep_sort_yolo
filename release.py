@@ -2,24 +2,23 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import division, print_function, absolute_import
-from timeit import time
+
+import argparse
+import csv
 import warnings
-from PIL import Image
-from yolo import YOLO, Yolo4
-from deep_sort import preprocessing
+from timeit import time
+
+import numpy as np
+from keras import backend
+from math import ceil
+
 from deep_sort import nn_matching
+from deep_sort import preprocessing
 from deep_sort.detection import Detection
 from deep_sort.tracker import Tracker
 from tools import generate_detections as gdet
-from keras import backend
 from utils import *
-import csv
-import glob
-import numpy as np
-from math import ceil
-from collections import deque
-
-from line_profiler import LineProfiler
+from yolo import Yolo4
 
 # os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 # os.environ['CUDA_VISIBLE_DEVICES'] = "0"
@@ -27,8 +26,8 @@ from line_profiler import LineProfiler
 warnings.filterwarnings('ignore')
 backend.clear_session()
 
-
 # =====================================================================================================================
+yolo = Yolo4()
 
 
 def main(video_path, sum_file_path, goal):
@@ -162,79 +161,86 @@ def main(video_path, sum_file_path, goal):
 
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4", r"D:\video\B6_2020_5_27_2.mp4"]
 # video_list = [r"D:\video\B6_2020_5_27_1.mp4"]
-video_list = [r"D:\video\5m-q2.mov"]
+# video_list = [r"D:\video\5m-q2.mov"]
 
 
 # video_list = [r"D:\WorkSpaces\videos\16s.mp4"]
 
-def run():
-    for video_path in video_list:
-        if not os.path.exists(video_path):
-            raise Exception("the path '%s' is wrong" % video_path)
-        goal = video_path.split(".")[0].split("\\")[-1]
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--video_path", type=str, default=r"D:\Videos\5m-z.mov")
+    return parser.parse_args()
 
+
+if __name__ == "__main__":
+    args = parse_args()
+    video_path = args.video_path
+
+    # for video_path in video_list:
+    if not os.path.exists(video_path):
+        raise Exception("the path '%s' is wrong" % video_path)
+    goal = video_path.split(".")[0].split("\\")[-1]
+
+    sum_file = "output_csv/num_%s.csv" % goal
+    while os.path.exists(sum_file):
+        goal += "_2"
         sum_file = "output_csv/num_%s.csv" % goal
-        while os.path.exists(sum_file):
-            goal += "_2"
-            sum_file = "output_csv/num_%s.csv" % goal
 
-        print(goal)
-        # lp = LineProfiler()
-        # lp.add_function(yolo.detect_image)
-        # lp_wrapper = lp(main)
-        # lp_wrapper(video_path, output_path, vehicle_file, sum_file, goal)
-        # lp.print_stats()
+    print(goal)
+    # lp = LineProfiler()
+    # lp.add_function(yolo.detect_image)
+    # lp_wrapper = lp(main)
+    # lp_wrapper(video_path, output_path, vehicle_file, sum_file, goal)
+    # lp.print_stats()
 
-        main(video_path, sum_file, goal)
+    main(video_path, sum_file, goal)
 
-    # ===================================================================
-    # parameter_file = open("output/para/parameter.csv", 'w', encoding='gbk')
-    # csv_writer = csv.writer(parameter_file)
-    # csv_writer.writerow(['num', 'n_init', 'max_age', 'yolo_score', 'avg_time'] +
-    #                     ["bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
-    #                      "car_h", "car_hc",
-    #                      "bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
-    #                      "car_h", "car_hc"])
-    #
-    # n_init_list = [10,7, 5]
-    # yolo_score_list = [0.5]
-    # max_age_list = [20,15, 10]
-    # # height_of_heavy_truck_list = [850, 900, 950, 1000]
-    # # height_of_container_truck_list = [1250, 1300]
+# ===================================================================
+# parameter_file = open("output/para/parameter.csv", 'w', encoding='gbk')
+# csv_writer = csv.writer(parameter_file)
+# csv_writer.writerow(['num', 'n_init', 'max_age', 'yolo_score', 'avg_time'] +
+#                     ["bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
+#                      "car_h", "car_hc",
+#                      "bus", "taxi", "coach", "car", "motor", "heavy_truck", "van", "container_truck", "car_nh",
+#                      "car_h", "car_hc"])
+#
+# n_init_list = [10,7, 5]
+# yolo_score_list = [0.5]
+# max_age_list = [20,15, 10]
+# # height_of_heavy_truck_list = [850, 900, 950, 1000]
+# # height_of_container_truck_list = [1250, 1300]
 
-    # num = 0
-    # global n_init
-    # global max_age
-    # global yolo_score
-    #
-    # for i in yolo_score_list:
-    #     for j in n_init_list:
-    #         for k in max_age_list:
-    #             n_init = j
-    #             max_age = k
-    #
-    #             path = 'output/para/' + str(num)
-    #             if not os.path.exists(path):
-    #                 os.mkdir(path)
-    #
-    #             video_path = video_list[0]
-    #             goal = video_path.split(".")[0].split("\\")[-1]
-    #             output_path = "output/para/%s/r_%s.mov" % (num, goal)
-    #             vehicle_file = "output/para/%s/vehicle_%s.csv" % (num, goal)
-    #             sum_file = "output/para/%s/nums_%s.csv" % (num, goal)
-    #             leave_list, time_need = main(video_path, output_path, vehicle_file, sum_file, goal)
-    #             # leave_list, time_need = [[],[]], 0
-    #             csv_writer.writerow(
-    #                 [num, n_init, max_age, yolo_score, time_need] + leave_list[0] +
-    #                 leave_list[1])
-    #             num += 1
-    #
-    #             if os.path.exists("output/stop.txt"):
-    #                 parameter_file.close()
-    #                 return
-    # parameter_file.close()
+# num = 0
+# global n_init
+# global max_age
+# global yolo_score
+#
+# for i in yolo_score_list:
+#     for j in n_init_list:
+#         for k in max_age_list:
+#             n_init = j
+#             max_age = k
+#
+#             path = 'output/para/' + str(num)
+#             if not os.path.exists(path):
+#                 os.mkdir(path)
+#
+#             video_path = video_list[0]
+#             goal = video_path.split(".")[0].split("\\")[-1]
+#             output_path = "output/para/%s/r_%s.mov" % (num, goal)
+#             vehicle_file = "output/para/%s/vehicle_%s.csv" % (num, goal)
+#             sum_file = "output/para/%s/nums_%s.csv" % (num, goal)
+#             leave_list, time_need = main(video_path, output_path, vehicle_file, sum_file, goal)
+#             # leave_list, time_need = [[],[]], 0
+#             csv_writer.writerow(
+#                 [num, n_init, max_age, yolo_score, time_need] + leave_list[0] +
+#                 leave_list[1])
+#             num += 1
+#
+#             if os.path.exists("output/stop.txt"):
+#                 parameter_file.close()
+#                 return
+# parameter_file.close()
 
 
 # yolo = YOLO()
-yolo = Yolo4()
-run()
